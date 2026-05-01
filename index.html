@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1117">
+<title>ILMI GROUP - Stock Tracking System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d3d;
+  --border:#2a3347;--border2:#354060;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --blue:#3b82f6;--blue2:#1d4ed8;--bluebg:#1e3a5f;
+  --green:#22c55e;--greenbg:#14532d;
+  --red:#ef4444;--redbg:#7f1d1d;
+  --yellow:#eab308;--yellowbg:#713f12;
+  --purple:#a855f7;--purplebg:#3b0764;
+  --cyan:#06b6d4;--cyanbg:#164e63;
+  --orange:#f97316;--orangebg:#7c2d12;
+  --radius:8px;--radius2:12px;
+  --font:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+  --sidebar-w:220px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ===== LOGIN ===== */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px;text-align:center}
+.login-logo{font-size:28px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--text3);margin-bottom:32px;letter-spacing:1px;text-transform:uppercase}
+.login-icon{font-size:48px;margin-bottom:24px;display:block}
+.login-field{position:relative;margin-bottom:16px;text-align:left}
+.login-field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.login-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border .15s}
+.login-field input:focus{border-color:var(--blue)}
+.login-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;transition:background .15s;margin-top:8px}
+.login-btn:hover{background:var(--blue2)}
+.login-err{background:var(--redbg);border:1px solid var(--red);color:#fca5a5;border-radius:var(--radius);padding:10px;font-size:12px;margin-top:12px;display:none}
+.login-hint{font-size:11px;color:var(--text3);margin-top:16px}
+
+/* ===== TOPBAR ===== */
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.hamburger{background:transparent;border:none;color:var(--text2);width:36px;height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;border-radius:8px;transition:background .15s}
+.hamburger:hover{background:var(--bg3)}
+.hamburger span{width:18px;height:2px;background:currentColor;border-radius:1px;transition:all .25s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.brand-logo{font-size:16px;font-weight:700;color:var(--text);white-space:nowrap}
+.brand-badge{background:var(--blue2);color:#93c5fd;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.5px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.topbar-stat{font-size:11px;color:var(--text3);display:none}
+@media(min-width:768px){.topbar-stat{display:block}}
+.user-pill{background:var(--bg3);border:1px solid var(--border);padding:5px 10px;border-radius:20px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer}
+.user-dot{width:22px;height:22px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* ===== LAYOUT ===== */
+.layout{display:flex;flex:1;position:relative;overflow:hidden;min-height:0}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;opacity:0;pointer-events:none;transition:opacity .25s}
+.sidebar-overlay.show{opacity:1;pointer-events:all}
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;flex-shrink:0;
+  position:fixed;top:52px;left:0;bottom:0;z-index:160;
+  transform:translateX(-100%);transition:transform .25s ease}
+.sidebar.open{transform:translateX(0)}
+@media(min-width:1024px){
+  .sidebar{position:relative;top:auto;left:auto;bottom:auto;transform:none;z-index:1}
+  .hamburger{display:none}
+  .sidebar-overlay{display:none}
+}
+.sidebar-section{margin-bottom:4px}
+.sidebar-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1.5px;padding:4px 16px 4px;text-transform:uppercase}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .1s;border-left:3px solid transparent}
+.sidebar-item:hover{background:var(--bg3);color:var(--text)}
+.sidebar-item.active{background:var(--bluebg);color:#93c5fd;border-left-color:var(--blue)}
+.sidebar-icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;
+  margin-left:0;transition:margin-left .25s}
+@media(min-width:1024px){.main{margin-left:0;padding:18px}}
+
+/* ===== STAT CARDS ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:600px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1100px){.stat-grid{grid-template-columns:repeat(6,1fr)}}
+.stat-grid-3{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:600px){.stat-grid-3{grid-template-columns:repeat(3,1fr)}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:12px 14px;cursor:pointer;transition:all .15s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stat-label{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.stat-value{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.c-blue .stat-value{color:var(--blue)}
+.c-red .stat-value{color:var(--red)}
+.c-yellow .stat-value{color:var(--yellow)}
+.c-green .stat-value{color:var(--green)}
+.c-purple .stat-value{color:var(--purple)}
+.c-cyan .stat-value{color:var(--cyan)}
+.c-orange .stat-value{color:var(--orange)}
+
+/* ===== TABS ===== */
+.tab-bar{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:4px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-bar::-webkit-scrollbar{height:0}
+.tab-btn{padding:7px 12px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.tab-btn:hover{background:var(--bg3);color:var(--text)}
+.tab-btn.active{background:var(--blue);color:#fff}
+
+/* ===== SEARCH ===== */
+.search-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.search-input{flex:1;min-width:160px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--text3)}
+select.filter-sel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 10px;color:var(--text2);font-size:12px;font-family:var(--font);outline:none;cursor:pointer;max-width:140px}
+
+/* ===== TABLE ===== */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.table-info{font-size:11px;color:var(--text3)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg3);color:var(--text3);font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--text)}
+.mono{font-family:var(--mono);font-size:11px}
+
+/* ===== FIX: Sembunyikan kolom di mobile ===== */
+@media(max-width:768px){
+  .hide-mobile{display:none!important}
+}
+
+/* ===== BADGES ===== */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.badge-blue{background:var(--bluebg);color:#93c5fd}
+.badge-green{background:var(--greenbg);color:#86efac}
+.badge-red{background:var(--redbg);color:#fca5a5}
+.badge-yellow{background:var(--yellowbg);color:#fde68a}
+.badge-gray{background:var(--bg3);color:var(--text3)}
+.badge-purple{background:var(--purplebg);color:#d8b4fe}
+.badge-cyan{background:var(--cyanbg);color:#67e8f9}
+.badge-orange{background:var(--orangebg);color:#fed7aa}
+
+/* ===== MARGIN BAR ===== */
+.margin-bar{display:flex;align-items:center;gap:6px}
+.bar-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;min-width:40px}
+.bar-fill{height:100%;border-radius:3px}
+.bar-pct{font-size:11px;font-weight:600;font-family:var(--mono);width:36px;text-align:right}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:12px;font-weight:500;font-family:var(--font);transition:all .15s;white-space:nowrap;min-height:36px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue2)}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg4);color:var(--text)}
+.btn-danger{background:var(--redbg);color:#fca5a5;border:1px solid #991b1b}
+.btn-success{background:var(--greenbg);color:#86efac;border:1px solid #166534}
+.btn-sm{padding:4px 10px;font-size:11px;min-height:28px}
+.btn-icon{padding:7px;min-width:36px;justify-content:center}
+.action-btns{display:flex;gap:4px}
+
+/* ===== FIX: Quick Stock Adjust Buttons ===== */
+.stock-adj{display:flex;align-items:center;gap:2px}
+.stock-adj button{width:22px;height:22px;border:1px solid var(--border);border-radius:4px;background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;min-height:0;line-height:1}
+.stock-adj button:hover{background:var(--bg4);color:var(--text)}
+.stock-adj .sval{width:28px;text-align:center;font-family:var(--mono);font-size:11px;font-weight:600}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:15px;font-weight:700}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--bg2)}
+.close-btn{background:var(--bg3);border:none;color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ===== FORM ===== */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border .15s}
+.form-input:focus{border-color:var(--blue)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+
+/* ===== PANEL ===== */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px}
+.panel-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* ===== SETTINGS ===== */
+.setting-row{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:12px}
+.setting-row:last-child{border-bottom:none}
+.setting-info{flex:1}
+.setting-name{font-size:13px;font-weight:500}
+.setting-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.setting-val{width:110px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;text-align:right;font-family:var(--mono);outline:none;flex-shrink:0}
+
+/* ===== STOCK NUM ===== */
+.snum{font-family:var(--mono);font-size:12px;font-weight:600}
+.low{color:var(--red)}.medium{color:var(--yellow)}.high{color:var(--green)}
+
+/* ===== PAGINATION ===== */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.page-info{font-size:11px;color:var(--text3)}
+.page-btns{display:flex;gap:4px}
+.page-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.page-btn:hover{background:var(--bg3)}
+.page-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ===== DROP ZONE ===== */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--blue);background:var(--bluebg)}
+
+/* ===== WA PREVIEW ===== */
+.wa-preview{background:#075e54;border-radius:var(--radius2);padding:16px}
+.wa-msg{background:#dcf8c6;color:#111;border-radius:8px 0 8px 8px;padding:10px 14px;font-size:12px;max-width:90%;margin-left:auto;position:relative;line-height:1.5}
+
+/* ===== HIGHLIGHT ===== */
+.order-row-highlight{background:rgba(239,68,68,.07)!important}
+.order-row-highlight td{color:var(--text)!important}
+
+/* ===== FIX: Detail Modal Styles ===== */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.detail-cell{padding:10px 14px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.detail-cell:nth-child(2n){border-right:none}
+.detail-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.detail-value{font-size:13px;font-weight:500}
+.detail-cell.full{grid-column:1/-1;border-right:none}
+
+/* ===== NOTIF ===== */
+.notif-container{position:fixed;top:60px;right:14px;z-index:3000;display:flex;flex-direction:column;gap:8px;max-width:300px}
+.notif-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-size:12px;animation:slideIn .2s ease;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.notif-item.success{border-color:var(--green)}
+.notif-item.error{border-color:var(--red)}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ===== MISC ===== */
+.hidden{display:none!important}
+.flex{display:flex}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.gap-8{gap:8px}
+.mb-12{margin-bottom:12px}
+.text-sm{font-size:12px}
+.text-xs{font-size:11px}
+.text-muted{color:var(--text3)}
+.fw-600{font-weight:600}
+.section-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.metric-big{font-size:30px;font-weight:700;font-family:var(--mono);line-height:1}
+.item-link{color:var(--blue);cursor:pointer;text-decoration:none}
+.item-link:hover{text-decoration:underline}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <span class="login-icon">🏪</span>
+    <div class="login-logo">ILMI GROUP</div>
+    <div class="login-sub">Stock Tracking System · Admin Login</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="l-user" placeholder="Username admin" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Masuk →</button>
+    <div class="login-err" id="login-err">Username atau password salah.</div>
+    <div class="login-hint">Default: admin / ilmi2024<br>Dapat diubah di menu Pengaturan</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <div>
+      <div class="brand-logo">ILMI GROUP <span class="brand-badge">STOCK</span></div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-stat" id="top-sku" style="color:var(--text3)"></span>
+    <span class="topbar-stat" id="top-order" style="color:var(--red)"></span>
+    <span class="topbar-stat" id="top-aman" style="color:var(--green)"></span>
+    <div class="user-pill" onclick="doLogout()">
+      <div class="user-dot" id="user-dot-text">IL</div>
+      <span id="topbar-username">ADMIN</span>
+      <span style="font-size:10px;color:var(--text3)">↩</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Data</div>
+    <div class="sidebar-item" id="si-update" onclick="activateSidebar('update')">
+      <span class="sidebar-icon">⬆</span> Update Data
+    </div>
+    <div class="sidebar-item" id="si-backup" onclick="activateSidebar('backup')">
+      <span class="sidebar-icon">💾</span> Backup Data
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Sistem</div>
+    <div class="sidebar-item" id="si-settings" onclick="activateSidebar('settings')">
+      <span class="sidebar-icon">⚙</span> Pengaturan
+    </div>
+  </div>
+  <div style="padding:10px 14px;margin-top:4px;border-top:1px solid var(--border)">
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase">Info Sistem</div>
+    <div style="font-size:11px;color:var(--text3);line-height:1.9">
+      <div>Min Stok: <span id="sb-minstok" style="color:var(--text2)">50</span></div>
+      <div>Margin Rendah: <span id="sb-margin" style="color:var(--text2)">3%</span></div>
+      <div>Lead Time: <span id="sb-lead" style="color:var(--text2)">14 hari</span></div>
+      <div>Safety Stock: <span id="sb-safety" style="color:var(--text2)">20%</span></div>
+      <div id="sb-lastupdate" style="color:var(--text3);margin-top:4px;font-size:10px"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px;font-size:12px" onclick="exportXLSX()">⬇ Export Excel</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main">
+
+<!-- STAT CARDS -->
+<div class="stat-grid" id="stat-cards">
+  <div class="stat-card c-blue" onclick="filterByStatus('all')">
+    <div class="stat-label">Total SKU <span>📦</span></div>
+    <div class="stat-value" id="s-total">0</div>
+    <div class="stat-sub">Item terdaftar</div>
+  </div>
+  <div class="stat-card c-red" onclick="filterByStatus('perlu-order')">
+    <div class="stat-label">Perlu Order <span>🛒</span></div>
+    <div class="stat-value" id="s-perlu">0</div>
+    <div class="stat-sub">Stok di bawah min</div>
+  </div>
+  <div class="stat-card c-yellow" onclick="filterByStatus('margin-rendah')">
+    <div class="stat-label">Margin Rendah <span>📉</span></div>
+    <div class="stat-value" id="s-margin">0</div>
+    <div class="stat-sub">Di bawah batas</div>
+  </div>
+  <div class="stat-card c-cyan" onclick="filterByStatus('ada-supplier')">
+    <div class="stat-label">Ada Supplier <span>🤝</span></div>
+    <div class="stat-value" id="s-supplier">0</div>
+    <div class="stat-sub">Dengan supplier</div>
+  </div>
+  <div class="stat-card c-green" onclick="filterByStatus('aman')">
+    <div class="stat-label">Stok Aman <span>✓</span></div>
+    <div class="stat-value" id="s-aman">0</div>
+    <div class="stat-sub">Stok cukup</div>
+  </div>
+  <div class="stat-card c-orange">
+    <div class="stat-label">Potensi Profit <span>$</span></div>
+    <div class="stat-value" id="s-profit" style="font-size:15px">0</div>
+    <div class="stat-sub">Estimasi keuntungan</div>
+  </div>
+</div>
+<div class="stat-grid-3">
+  <div class="stat-card c-red" onclick="filterByStatus('dead-stock')">
+    <div class="stat-label">Dead Stock <span>🚫</span></div>
+    <div class="stat-value" id="s-dead">0</div>
+    <div class="stat-sub">Tidak terjual</div>
+  </div>
+  <div class="stat-card c-purple" onclick="switchTab('performa')">
+    <div class="stat-label">Nilai Inventori <span>💰</span></div>
+    <div class="stat-value" id="s-nilai" style="font-size:14px">0</div>
+    <div class="stat-sub">Total modal x stok</div>
+  </div>
+  <div class="stat-card c-blue" onclick="switchTab('pembelian')">
+    <div class="stat-label">Data Pembelian <span>📋</span></div>
+    <div class="stat-value" id="s-pembelian">0</div>
+    <div class="stat-sub">Transaksi tercatat</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tbtn-barang" onclick="switchTab('barang')">☰ Daftar Barang</button>
+  <button class="tab-btn" id="tbtn-smart" onclick="switchTab('smart')">⚡ Smart Order</button>
+  <button class="tab-btn" id="tbtn-margin" onclick="switchTab('margin')">📈 Analisa Margin</button>
+  <button class="tab-btn" id="tbtn-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="tab-btn" id="tbtn-supplier" onclick="switchTab('supplier')">👥 Supplier</button>
+  <button class="tab-btn" id="tbtn-pembelian" onclick="switchTab('pembelian')">📋 Pembelian</button>
+  <button class="tab-btn" id="tbtn-performa" onclick="switchTab('performa')">🔥 Performa</button>
+  <button class="tab-btn" id="tbtn-harga" onclick="switchTab('harga')">$ Riwayat Harga</button>
+</div>
+
+<!-- ===== TAB: DAFTAR BARANG ===== -->
+<div id="tab-barang">
+  <div class="search-bar">
+    <input class="search-input" type="text" id="search-q" placeholder="🔍 Cari kode, nama item..." oninput="filterItems()">
+    <select class="filter-sel" id="f-jenis" onchange="filterItems()">
+      <option value="">Semua Jenis</option>
+    </select>
+    <select class="filter-sel" id="f-supplier" onchange="filterItems()">
+      <option value="">Semua Supplier</option>
+    </select>
+    <select class="filter-sel" id="f-status" onchange="filterItems()">
+      <option value="">Semua Status</option>
+      <option value="perlu-order">Perlu Order</option>
+      <option value="aman">Stok Aman</option>
+      <option value="dead-stock">Dead Stock</option>
+      <option value="margin-rendah">Margin Rendah</option>
+    </select>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Tambah</button>
+    <button class="btn btn-secondary" onclick="exportXLSX()">⬇ Export</button>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-info" id="tbl-count">0 item</div>
+      <div class="flex gap-8">
+        <button class="btn btn-sm btn-secondary" onclick="sortItems('nama')">Sort Nama</button>
+        <button class="btn btn-sm btn-secondary" onclick="sortItems('totalStok')">Sort Stok</button>
+        <button class="btn btn-sm btn-secondary" onclick="sortItems('marginPct')">Sort Margin</button>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Kode Item</th><th>Nama Item</th><th>Jenis</th>
+          <th class="hide-mobile">Supplier</th><th class="hide-mobile">Tgl Beli</th><th>Modal</th>
+          <th class="hide-mobile">Harga Beli</th><th>Harga Jual</th>
+          <th>Grosir</th><th>Mart</th><th>Total Stok</th><th>Margin %</th><th>Aksi</th>
+        </tr></thead>
+        <tbody id="items-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="page-info" id="pg-info">Halaman 1</div>
+      <div id="pg-btns" class="page-btns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SMART ORDER ===== -->
+<div id="tab-smart" class="hidden">
+  <div class="section-title">
+    <span>⚡ Smart Order – Item Prioritas Pemesanan</span>
+    <div class="flex gap-8">
+      <select class="filter-sel" id="smart-sup-filter" onchange="renderSmartOrder()" style="max-width:160px">
+        <option value="">Semua Supplier</option>
+      </select>
+      <button class="btn btn-primary" onclick="sendWhatsApp()">📱 WhatsApp</button>
+      <button class="btn btn-secondary" onclick="exportOrderTxt()">📄 Export TXT</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Kode</th><th>Nama Item</th><th class="hide-mobile">Jenis</th>
+          <th>Stok</th><th>Min</th><th>Kurang</th><th>Rekomendasi</th>
+          <th class="hide-mobile">Supplier</th><th class="hide-mobile">Harga Beli</th><th>Est. Total</th><th>Prioritas</th>
+        </tr></thead>
+        <tbody id="smart-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="page-info" id="smart-info"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--red)">Total Belanja: <span id="smart-total" class="mono">Rp 0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: ANALISA MARGIN ===== -->
+<div id="tab-margin" class="hidden">
+  <div class="section-title">
+    <span>📈 Analisa Margin Keuntungan</span>
+    <div class="flex gap-8">
+      <select class="filter-sel" id="margin-filter" onchange="renderMargin()">
+        <option value="">Semua</option>
+        <option value="rendah">Margin Rendah</option>
+        <option value="sedang">Sedang</option>
+        <option value="baik">Baik</option>
+      </select>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Kode</th><th>Nama Item</th><th class="hide-mobile">Jenis</th><th>Modal</th>
+          <th>Harga Jual</th><th>Margin %</th><th>Margin Rp</th>
+          <th>Status</th><th>Stok</th><th>Potensi Profit</th>
+        </tr></thead>
+        <tbody id="margin-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="page-info" id="margin-info"></div>
+      <div id="margin-pg-btns" class="page-btns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: DASHBOARD ===== -->
+<div id="tab-dashboard" class="hidden">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="panel">
+      <div class="panel-title">📊 Status Stok</div>
+      <canvas id="chart-status" height="180"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📈 Distribusi Margin</div>
+      <canvas id="chart-margin" height="180"></canvas>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="panel">
+      <div class="panel-title">🔥 Top 10 Margin Tertinggi</div>
+      <div id="top-margin-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">⚠ Top 10 Stok Kritis</div>
+      <div id="kritis-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SUPPLIER ===== -->
+<div id="tab-supplier" class="hidden">
+  <div class="section-title">👥 Analisa Supplier</div>
+  <div id="supplier-content"></div>
+</div>
+
+<!-- ===== TAB: PEMBELIAN ===== -->
+<div id="tab-pembelian" class="hidden">
+  <div class="section-title">
+    <span>📋 Riwayat Pembelian (dari file PEMBELIAN.xlsx)</span>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" type="text" id="pb-search" placeholder="🔍 Cari supplier atau nama item..." oninput="filterPembelian()">
+    <select class="filter-sel" id="pb-supplier" onchange="filterPembelian()">
+      <option value="">Semua Supplier</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>No Transaksi</th><th>Tanggal</th><th>Supplier</th>
+          <th class="hide-mobile">Kode Item</th><th>Nama Item</th><th>Qty</th><th class="hide-mobile">Satuan</th>
+          <th>Harga</th><th>Total</th>
+        </tr></thead>
+        <tbody id="pb-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="page-info" id="pb-info"></div>
+      <div id="pb-pg-btns" class="page-btns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: PERFORMA ===== -->
+<div id="tab-performa" class="hidden">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="panel">
+      <div class="panel-title">💰 Total Nilai Inventori</div>
+      <div class="metric-big" id="perf-nilai" style="color:var(--blue)">Rp 0</div>
+      <div class="text-muted text-sm" style="margin-top:6px">Modal × Stok</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📈 Rata-rata Margin</div>
+      <div class="metric-big" id="perf-avg" style="color:var(--green)">0%</div>
+      <div class="text-muted text-sm" style="margin-top:6px">Seluruh produk aktif</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">⚠ Item Kritis</div>
+      <div class="metric-big" id="perf-kritis" style="color:var(--red)">0</div>
+      <div class="text-muted text-sm" style="margin-top:6px">Perlu order segera</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">Performa per Jenis Barang</div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Jenis</th><th>Jumlah SKU</th><th>Total Stok</th>
+          <th>Avg Margin</th><th>Perlu Order</th><th>Nilai Inventori</th><th>Potensi Profit</th>
+        </tr></thead>
+        <tbody id="perf-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: RIWAYAT HARGA ===== -->
+<div id="tab-harga" class="hidden">
+  <div class="section-title">
+    <span>$ Riwayat Perubahan Harga</span>
+    <button class="btn btn-sm btn-danger" onclick="clearHargaHistory()">🗑 Hapus Riwayat</button>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Tanggal</th><th>Kode</th><th>Nama Item</th>
+          <th>Harga Lama</th><th>Harga Baru</th><th>Selisih</th><th>%</th>
+        </tr></thead>
+        <tbody id="harga-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: UPDATE DATA ===== -->
+<div id="tab-update" class="hidden">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="panel">
+      <div class="panel-title">⬆ Import IPOS 5 (Grosir)</div>
+      <div class="drop-zone" id="dz-ipos5" onclick="document.getElementById('f-ipos5').click()">
+        <div style="font-size:32px;margin-bottom:8px">📊</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px">Klik atau drag file IPOS5.xlsx</div>
+        <div class="text-muted text-sm">File IPOS 5 Grosir — Kolom: Kode Item, Nama, Jenis, Stok, Satuan, ISI, Pokok, Harga Retail, Harga Grosir</div>
+        <input type="file" id="f-ipos5" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFile(this,'ipos5')">
+      </div>
+      <div id="status-ipos5" class="text-sm text-muted" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">⬆ Import DATA IP4 (Mart)</div>
+      <div class="drop-zone" id="dz-ip4" onclick="document.getElementById('f-ip4').click()">
+        <div style="font-size:32px;margin-bottom:8px">📊</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px">Klik atau drag file DATA_IP4.xlsx</div>
+        <div class="text-muted text-sm">File IPOS 4 Mart — Header baris ke-7: KODE ITEM, NAMA ITEM, STOK, HARGA POKOK, HARGA RETAIL</div>
+        <input type="file" id="f-ip4" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFile(this,'ip4')">
+      </div>
+      <div id="status-ip4" class="text-sm text-muted" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">⬆ Import PEMBELIAN (Opsional)</div>
+      <div class="drop-zone" id="dz-pembelian" onclick="document.getElementById('f-pembelian').click()">
+        <div style="font-size:32px;margin-bottom:8px">📋</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px">Klik atau drag file PEMBELIAN.xlsx</div>
+        <div class="text-muted text-sm">Laporan Pembelian Detail — mengisi info supplier, harga beli, dan tanggal pembelian terakhir</div>
+        <input type="file" id="f-pembelian" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFile(this,'pembelian')">
+      </div>
+      <div id="status-pembelian" class="text-sm text-muted" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📊 Status Data</div>
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;margin-bottom:10px">
+        <div class="text-xs text-muted">Data tersimpan di perangkat ini</div>
+        <div style="font-size:14px;font-weight:600;color:var(--green);margin-top:4px" id="status-tersimpan">Belum ada data</div>
+        <div class="text-xs text-muted" style="margin-top:2px" id="status-update-time"></div>
+        <div class="text-xs" style="color:var(--blue);margin-top:6px">⚠ Data tersimpan per perangkat (localStorage). Gunakan fitur Backup untuk berbagi antar perangkat.</div>
+      </div>
+      <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="clearAllData()">🗑 Hapus Semua Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: BACKUP ===== -->
+<div id="tab-backup" class="hidden">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="panel">
+      <div class="panel-title">💾 Backup Data</div>
+      <p class="text-sm text-muted" style="margin-bottom:14px;line-height:1.6">
+        Unduh file backup JSON yang berisi semua data item, pengaturan, dan riwayat.
+        File ini dapat dibuka di perangkat lain menggunakan fitur Restore di bawah.
+      </p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="backupData()">📥 Unduh Backup JSON</button>
+      <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:var(--radius)">
+        <div class="text-xs text-muted">Info Backup:</div>
+        <div class="text-sm" style="margin-top:4px">Items: <span id="bk-items" style="color:var(--blue)">0</span></div>
+        <div class="text-sm">Pembelian: <span id="bk-pb" style="color:var(--blue)">0</span> transaksi</div>
+        <div class="text-sm">Riwayat harga: <span id="bk-harga" style="color:var(--blue)">0</span> perubahan</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📤 Restore Data</div>
+      <p class="text-sm text-muted" style="margin-bottom:14px;line-height:1.6">
+        Upload file backup JSON untuk memulihkan data dari perangkat lain.
+        ⚠ Data yang ada saat ini akan diganti.
+      </p>
+      <div class="drop-zone" id="dz-backup" onclick="document.getElementById('f-backup').click()">
+        <div style="font-size:32px;margin-bottom:8px">📂</div>
+        <div style="font-weight:600;font-size:13px">Klik atau drag file backup.json</div>
+        <input type="file" id="f-backup" accept=".json" style="display:none" onchange="restoreData(this)">
+      </div>
+      <div id="status-backup" class="text-sm text-muted" style="margin-top:8px"></div>
+    </div>
+    <div class="panel" style="grid-column:1/-1">
+      <div class="panel-title">🌐 Cara Akses dari Berbagai Perangkat</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:4px">
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:12px">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px">📱 Mobile (HP/Tablet)</div>
+          <div class="text-xs text-muted" style="line-height:1.7">1. Kirim file HTML ini via WhatsApp/email ke HP<br>2. Buka file di browser HP (Chrome/Safari)<br>3. Import data Excel atau Restore backup</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:12px">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px">💻 Komputer Lain</div>
+          <div class="text-xs text-muted" style="line-height:1.7">1. Copy file HTML ke komputer lain<br>2. Buka di browser<br>3. Restore backup dari file JSON<br>atau import ulang Excel</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:12px">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px">☁ Hosting Online</div>
+          <div class="text-xs text-muted" style="line-height:1.7">Untuk akses real-time semua perangkat:<br>Upload file HTML ke hosting (Netlify, GitHub Pages) lalu buka URL dari mana saja</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SETTINGS ===== -->
+<div id="tab-settings" class="hidden">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="panel">
+      <div class="panel-title">⚙ Pengaturan Stok</div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Minimum Stok</div><div class="setting-desc">Batas minimal stok sebelum perlu order</div></div>
+        <input class="setting-val" type="number" id="set-minstok" value="50" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Batas Margin Rendah (%)</div><div class="setting-desc">Margin di bawah ini dianggap rendah</div></div>
+        <input class="setting-val" type="number" id="set-margin" value="3" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Lead Time (hari)</div><div class="setting-desc">Waktu tunggu dari supplier</div></div>
+        <input class="setting-val" type="number" id="set-lead" value="14" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Safety Stock (%)</div><div class="setting-desc">Buffer stok dari minimum</div></div>
+        <input class="setting-val" type="number" id="set-safety" value="20" onchange="saveSettings()">
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🔒 Keamanan Admin</div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Username Admin</div><div class="setting-desc">Nama pengguna untuk login</div></div>
+        <input class="setting-val" type="text" id="set-user" style="width:120px" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Password Baru</div><div class="setting-desc">Kosongkan jika tidak ingin ubah</div></div>
+        <input class="setting-val" type="password" id="set-pass" style="width:120px" placeholder="(kosong=tidak berubah)">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Konfirmasi Password</div><div class="setting-desc">Ulangi password baru</div></div>
+        <input class="setting-val" type="password" id="set-pass2" style="width:120px" placeholder="Ulangi...">
+      </div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="changePassword()">💾 Simpan Password</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📱 WhatsApp & Nama Toko</div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Nomor WhatsApp</div><div class="setting-desc">Format: 628xxxxxxxxxx</div></div>
+        <input class="setting-val" type="text" id="set-wa" style="width:150px" placeholder="628123..." onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-name">Nama Toko</div><div class="setting-desc">Tampil di laporan dan WA</div></div>
+        <input class="setting-val" type="text" id="set-tokoname" style="width:150px" value="ILMI GROUP" onchange="saveSettings()">
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Preview Pesan WhatsApp:</div>
+        <div class="wa-preview">
+          <div class="wa-msg" id="wa-preview">Loading...</div>
+        </div>
+        <button class="btn btn-success" style="width:100%;justify-content:center;margin-top:10px" onclick="sendWhatsApp()">📱 Kirim ke WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- ===== MODAL TAMBAH/EDIT ITEM ===== -->
+<div class="modal-overlay hidden" id="item-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Tambah Item</div>
+      <button class="close-btn" onclick="closeModal('item-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Kode Item *</label>
+          <input class="form-input" type="text" id="f-kode" placeholder="8991001122000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jenis *</label>
+          <input class="form-input" type="text" id="f-jenis-inp" placeholder="KOPI, SIRUP, ACI...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Item *</label>
+        <input class="form-input" type="text" id="f-nama" placeholder="Nama lengkap produk">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Supplier</label>
+          <input class="form-input" type="text" id="f-supplier-inp" placeholder="Nama supplier">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tgl Beli Terakhir</label>
+          <input class="form-input" type="date" id="f-tglbeli">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Modal / Pokok</label>
+          <input class="form-input" type="number" id="f-modal" placeholder="0" oninput="calcMarginPrev()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Beli Terakhir</label>
+          <input class="form-input" type="number" id="f-hargabeli" placeholder="0">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Harga Jual (Retail) *</label>
+          <input class="form-input" type="number" id="f-hargajual" placeholder="0" oninput="calcMarginPrev()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Grosir</label>
+          <input class="form-input" type="number" id="f-hargagrosir" placeholder="0">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Stok Grosir</label>
+          <input class="form-input" type="number" id="f-stokgrosir" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stok Mart</label>
+          <input class="form-input" type="number" id="f-stokmart" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preview Margin</label>
+        <div class="form-input" id="f-margin-prev" style="background:var(--bg);color:var(--green);font-family:var(--mono);font-weight:700">— %</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('item-modal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveItem()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FIX BARU: MODAL DETAIL ITEM ===== -->
+<div class="modal-overlay hidden" id="detail-modal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">Detail Item</div>
+      <button class="close-btn" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="detail-grid" id="detail-grid"></div>
+      <div style="padding:14px 16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">📋 Riwayat Pembelian untuk Item Ini</div>
+        <div id="detail-purchases" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('detail-modal')">Tutup</button>
+      <button class="btn btn-primary" id="detail-edit-btn">✏ Edit Item</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif-container" id="notif-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+'use strict';
+// ============================================================
+// STATE
+// ============================================================
+let items = [];
+let filteredItems = [];
+let pembelianData = [];
+let pembelianFiltered = [];
+let priceHistory = [];
+let currentPage = 1;
+let marginPage = 1;
+let pbPage = 1;
+const PAGE_SIZE = 50;
+let sortKey = '';
+let sortAsc = true;
+let activeTab = 'barang';
+let editingKode = null;
+let detailKode = null;
+let charts = {};
+
+let settings = {
+  minStok: 50,
+  marginRendah: 3,
+  leadTime: 14,
+  safetyStock: 20,
+  wa: '',
+  tokoName: 'ILMI GROUP'
+};
+
+// ============================================================
+// AUTH
+// ============================================================
+const AUTH = {
+  DEFAULT_USER: 'admin',
+  DEFAULT_PASS: 'ilmi2024',
+  getUser(){ return localStorage.getItem('ilmi_user') || this.DEFAULT_USER },
+  getPass(){ return localStorage.getItem('ilmi_pass') || this.DEFAULT_PASS },
+  isLoggedIn(){ return !!sessionStorage.getItem('ilmi_session') },
+  login(u, p){
+    if(u === this.getUser() && p === this.getPass()){
+      sessionStorage.setItem('ilmi_session','1');
+      return true;
+    }
+    return false;
+  },
+  logout(){ sessionStorage.removeItem('ilmi_session') },
+  changeCredentials(u, p){
+    if(u) localStorage.setItem('ilmi_user', u);
+    if(p) localStorage.setItem('ilmi_pass', p);
+  }
+};
+
+function doLogin(){
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  const err = document.getElementById('login-err');
+  if(!u||!p){ err.style.display='block'; err.textContent='Isi username dan password.'; return; }
+  if(AUTH.login(u,p)){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('topbar-username').textContent = u.toUpperCase();
+    document.getElementById('user-dot-text').textContent = u.substring(0,2).toUpperCase();
+    initApp();
+  } else {
+    err.style.display='block';
+    err.textContent='Username atau password salah!';
+  }
+}
+
+function doLogout(){
+  if(!confirm('Keluar dari sistem?')) return;
+  AUTH.logout();
+  location.reload();
+}
+
+function changePassword(){
+  const u = document.getElementById('set-user').value.trim();
+  const p1 = document.getElementById('set-pass').value;
+  const p2 = document.getElementById('set-pass2').value;
+  if(!u){ showNotif('Username tidak boleh kosong!','error'); return; }
+  if(p1 && p1 !== p2){ showNotif('Konfirmasi password tidak cocok!','error'); return; }
+  if(p1 && p1.length < 4){ showNotif('Password minimal 4 karakter!','error'); return; }
+  AUTH.changeCredentials(u, p1 || null);
+  showNotif('Kredensial berhasil disimpan! Silakan login ulang jika diperlukan.','success');
+  document.getElementById('set-pass').value = '';
+  document.getElementById('set-pass2').value = '';
+}
+
+// ============================================================
+// LOCAL STORAGE
+// ============================================================
+function saveLS(){
+  try{
+    localStorage.setItem('ilmi_items', JSON.stringify(items));
+    localStorage.setItem('ilmi_settings', JSON.stringify(settings));
+    localStorage.setItem('ilmi_priceHistory', JSON.stringify(priceHistory));
+    localStorage.setItem('ilmi_pembelian', JSON.stringify(pembelianData));
+    localStorage.setItem('ilmi_lastUpdate', new Date().toLocaleString('id-ID'));
+  } catch(e){ showNotif('Storage penuh! Hapus data lama.','error'); }
+}
+
+function loadLS(){
+  try{
+    const it = localStorage.getItem('ilmi_items');
+    if(it) items = JSON.parse(it);
+    const se = localStorage.getItem('ilmi_settings');
+    if(se) settings = {...settings, ...JSON.parse(se)};
+    const ph = localStorage.getItem('ilmi_priceHistory');
+    if(ph) priceHistory = JSON.parse(ph);
+    const pb = localStorage.getItem('ilmi_pembelian');
+    if(pb) pembelianData = JSON.parse(pb);
+  } catch(e){ items=[]; }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initApp(){
+  loadLS();
+  applySettingsToForm();
+  items.forEach(calcStats);
+  filteredItems = [...items];
+  updateStats();
+  updateTopbar();
+  updateSidebarInfo();
+  renderCurrentTab();
+  updateBackupInfo();
+  updateWAPreview();
+  setupDragDropAll();
+  document.getElementById('set-user').value = AUTH.getUser();
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(AUTH.isLoggedIn()){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    const u = AUTH.getUser();
+    document.getElementById('topbar-username').textContent = u.toUpperCase();
+    document.getElementById('user-dot-text').textContent = u.substring(0,2).toUpperCase();
+    initApp();
+  }
+  document.getElementById('l-user').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('l-pass').focus(); });
+});
+
+// ============================================================
+// SIDEBAR / MOBILE
+// ============================================================
+function toggleSidebar(){
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  const h = document.getElementById('hamburger');
+  s.classList.toggle('open');
+  o.classList.toggle('show');
+  h.classList.toggle('open');
+}
+
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+function activateSidebar(tab){
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('si-'+tab)?.classList.add('active');
+  showTab(tab);
+  closeSidebar();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+const ALL_TABS = ['barang','smart','margin','dashboard','supplier','pembelian','performa','harga','update','backup','settings'];
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tbtn-'+tab)?.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  showTab(tab);
+  closeSidebar();
+}
+
+function showTab(tab){
+  ALL_TABS.forEach(t=>{ const el=document.getElementById('tab-'+t); if(el) el.classList.add('hidden'); });
+  const el = document.getElementById('tab-'+tab);
+  if(el) el.classList.remove('hidden');
+  activeTab = tab;
+  renderCurrentTab();
+}
+
+function renderCurrentTab(){
+  if(activeTab==='barang') renderItemTable();
+  else if(activeTab==='smart') renderSmartOrder();
+  else if(activeTab==='margin') renderMargin();
+  else if(activeTab==='dashboard') renderDashboard();
+  else if(activeTab==='supplier') renderSupplier();
+  else if(activeTab==='pembelian') renderPembelian();
+  else if(activeTab==='performa') renderPerforma();
+  else if(activeTab==='harga') renderHargaHistory();
+  else if(activeTab==='update') refreshUpdateStatus();
+  else if(activeTab==='backup') updateBackupInfo();
+  else if(activeTab==='settings') applySettingsToForm();
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function calcStats(item){
+  const g = parseFloat(item.stokGrosir)||0;
+  const m = parseFloat(item.stokMart)||0;
+  item.stokGrosir = g;
+  item.stokMart = m;
+  item.totalStok = g + m;
+  const modal = parseFloat(item.modal)||parseFloat(item.hargaBeli)||0;
+  const jual = parseFloat(item.hargaJual)||0;
+  item.marginRp = jual - modal;
+  item.marginPct = modal > 0 ? (item.marginRp / modal * 100) : 0;
+  return item;
+}
+
+function updateStats(){
+  items.forEach(calcStats);
+  const total = items.length;
+  const perlu = items.filter(i=>i.totalStok < settings.minStok).length;
+  const mrendah = items.filter(i=>i.marginPct < settings.marginRendah && i.marginPct !== 0).length;
+  const supplier = items.filter(i=>i.supplier?.trim()).length;
+  const aman = items.filter(i=>i.totalStok >= settings.minStok).length;
+  const dead = items.filter(i=>i.totalStok === 0).length;
+  const profit = items.reduce((s,i)=>s+(i.marginRp||0)*(i.totalStok||0), 0);
+  const nilai = items.reduce((s,i)=>{const modal=parseFloat(i.modal)||parseFloat(i.hargaBeli)||0; return s+modal*(i.totalStok||0);}, 0);
+  const transCount = [...new Set(pembelianData.map(p=>p.noTrans))].length;
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-perlu').textContent = perlu;
+  document.getElementById('s-margin').textContent = mrendah;
+  document.getElementById('s-supplier').textContent = supplier;
+  document.getElementById('s-aman').textContent = aman;
+  document.getElementById('s-dead').textContent = dead;
+  document.getElementById('s-profit').textContent = fmtK(profit);
+  document.getElementById('s-nilai').textContent = fmtK(nilai);
+  document.getElementById('s-pembelian').textContent = transCount;
+  updateTopbar();
+  updateSidebarInfo();
+}
+
+function updateTopbar(){
+  document.getElementById('top-sku').textContent = '📦 '+items.length+' SKU';
+  document.getElementById('top-order').textContent = '⚠ '+items.filter(i=>i.totalStok<settings.minStok).length+' Order';
+  document.getElementById('top-aman').textContent = '✓ '+items.filter(i=>i.totalStok>=settings.minStok).length+' Aman';
+}
+
+function updateSidebarInfo(){
+  document.getElementById('sb-minstok').textContent = settings.minStok;
+  document.getElementById('sb-margin').textContent = settings.marginRendah+'%';
+  document.getElementById('sb-lead').textContent = settings.leadTime+' hari';
+  document.getElementById('sb-safety').textContent = settings.safetyStock+'%';
+  const lu = localStorage.getItem('ilmi_lastUpdate');
+  if(lu) document.getElementById('sb-lastupdate').textContent = 'Update: '+lu;
+}
+
+function refreshUpdateStatus(){
+  const lu = localStorage.getItem('ilmi_lastUpdate');
+  document.getElementById('status-tersimpan').textContent = items.length > 0 ? items.length+' item tersimpan' : 'Belum ada data';
+  if(lu) document.getElementById('status-update-time').textContent = 'Terakhir: '+lu;
+}
+
+// ============================================================
+// FILTER ITEMS
+// ============================================================
+function filterItems(){
+  const q = document.getElementById('search-q')?.value.toLowerCase()||'';
+  const fj = document.getElementById('f-jenis')?.value||'';
+  const fs = document.getElementById('f-supplier')?.value||'';
+  const fst = document.getElementById('f-status')?.value||'';
+
+  filteredItems = items.filter(i=>{
+    if(q && !i.kode?.toLowerCase().includes(q) && !i.nama?.toLowerCase().includes(q)) return false;
+    if(fj && i.jenis !== fj) return false;
+    if(fs && i.supplier !== fs) return false;
+    if(fst==='perlu-order' && i.totalStok >= settings.minStok) return false;
+    if(fst==='aman' && i.totalStok < settings.minStok) return false;
+    if(fst==='dead-stock' && i.totalStok !== 0) return false;
+    if(fst==='margin-rendah' && i.marginPct >= settings.marginRendah) return false;
+    if(fst==='ada-supplier' && !i.supplier?.trim()) return false;
+    return true;
+  });
+  if(sortKey){
+    filteredItems.sort((a,b)=>{
+      let va=a[sortKey], vb=b[sortKey];
+      if(typeof va==='string') va=va.toLowerCase();
+      if(typeof vb==='string') vb=vb.toLowerCase();
+      if(va<vb) return sortAsc?-1:1;
+      if(va>vb) return sortAsc?1:-1;
+      return 0;
+    });
+  }
+  currentPage = 1;
+  renderItemTable();
+}
+
+function filterByStatus(s){
+  switchTab('barang');
+  const el = document.getElementById('f-status');
+  if(el){
+    el.value = s==='perlu-order'?'perlu-order':s==='aman'?'aman':s==='dead-stock'?'dead-stock':s==='margin-rendah'?'margin-rendah':s==='ada-supplier'?'ada-supplier':'';
+  }
+  setTimeout(filterItems, 50);
+}
+
+function sortItems(key){
+  if(sortKey===key) sortAsc=!sortAsc; else{sortKey=key;sortAsc=true;}
+  filterItems();
+}
+
+// ============================================================
+// FIX: populateFilters selalu rebuild dari data terbaru
+// ============================================================
+function populateFilters(){
+  const fj = document.getElementById('f-jenis');
+  const fs = document.getElementById('f-supplier');
+  if(!fj||!fs) return;
+
+  const jenis = [...new Set(items.map(i=>i.jenis).filter(Boolean))].sort();
+  const suppliers = [...new Set(items.map(i=>i.supplier).filter(Boolean))].sort();
+
+  const curJ = fj.value, curS = fs.value;
+
+  fj.innerHTML = '<option value="">Semua Jenis</option>';
+  jenis.forEach(j=>{ const o=document.createElement('option'); o.value=j; o.textContent=j; fj.appendChild(o); });
+  fj.value = curJ;
+
+  fs.innerHTML = '<option value="">Semua Supplier</option>';
+  suppliers.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; fs.appendChild(o); });
+  fs.value = curS;
+}
+
+// ============================================================
+// RENDER ITEM TABLE
+// ============================================================
+function renderItemTable(){
+  populateFilters();
+  const tbody = document.getElementById('items-tbody');
+  if(!tbody) return;
+  const start = (currentPage-1)*PAGE_SIZE;
+  const page = filteredItems.slice(start, start+PAGE_SIZE);
+
+  tbody.innerHTML = page.map((item,i)=>{
+    const idx = start+i;
+    const ts = item.totalStok||0;
+    const m = item.marginPct||0;
+    const sc = ts===0?'low':ts<settings.minStok?'medium':'high';
+    const mc = m<settings.marginRendah?'var(--red)':m<15?'var(--yellow)':'var(--green)';
+    const sk = (item.kode||'').replace(/'/g,"\\'");
+
+    return `<tr>
+      <td class="mono" style="font-size:10px;max-width:120px">${item.kode||'-'}</td>
+      <td><span class="item-link" onclick="showDetail('${sk}')">${item.nama||'-'}</span></td>
+      <td><span class="badge badge-blue">${item.jenis||'-'}</span></td>
+      <td class="hide-mobile" style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.supplier||''}">${item.supplier||'—'}</td>
+      <td class="hide-mobile" style="font-size:10px;color:var(--text3)">${item.tglBeli||'—'}</td>
+      <td class="mono">${fmtRp(item.modal)}</td>
+      <td class="hide-mobile mono">${fmtRp(item.hargaBeli)}</td>
+      <td class="mono" style="font-weight:600;color:var(--text)">${fmtRp(item.hargaJual)}</td>
+      <td><div class="stock-adj"><button onclick="adjStok('${sk}','grosir',-1)">−</button><span class="sval ${sc}">${item.stokGrosir||0}</span><button onclick="adjStok('${sk}','grosir',1)">+</button></div></td>
+      <td><div class="stock-adj"><button onclick="adjStok('${sk}','mart',-1)">−</button><span class="sval ${sc}">${item.stokMart||0}</span><button onclick="adjStok('${sk}','mart',1)">+</button></div></td>
+      <td><span class="snum ${sc}" style="font-size:13px">${ts}</span></td>
+      <td>
+        <div class="margin-bar">
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(m,100)}%;background:${mc}"></div></div>
+          <span class="bar-pct ${m<settings.marginRendah?'low':m<15?'medium':'high'}">${m.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editItem('${sk}')">✏</button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteItem('${sk}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--text3)">Tidak ada item ditemukan</td></tr>';
+
+  document.getElementById('tbl-count').textContent = `Menampilkan ${filteredItems.length} dari ${items.length} item`;
+
+  // FIX: Pagination pakai global handler, bukan toString()
+  renderPaginationGlobal('pg-info','pg-btns', filteredItems.length, currentPage, (p)=>{ currentPage=p; renderItemTable(); });
+}
+
+// ============================================================
+// FIX BARU: Quick Stock Adjustment
+// ============================================================
+function adjStok(kode, tipe, delta){
+  const item = items.find(i=>i.kode===kode);
+  if(!item) return;
+  if(tipe==='grosir') item.stokGrosir = Math.max(0, (item.stokGrosir||0) + delta);
+  else item.stokMart = Math.max(0, (item.stokMart||0) + delta);
+  calcStats(item);
+  saveLS(); updateStats();
+  if(activeTab==='barang') renderItemTable();
+}
+
+// ============================================================
+// FIX BARU: Detail Modal
+// ============================================================
+function showDetail(kode){
+  const item = items.find(i=>i.kode===kode);
+  if(!item) return;
+  detailKode = kode;
+  document.getElementById('detail-title').textContent = item.nama;
+  const modal = parseFloat(item.modal)||parseFloat(item.hargaBeli)||0;
+  const jual = parseFloat(item.hargaJual)||0;
+  const m = item.marginPct||0;
+  const mc = m<settings.marginRendah?'var(--red)':m<15?'var(--yellow)':'var(--green)';
+  const sc = v=>v===0?'low':v<settings.minStok?'medium':'high';
+  const sk = (item.kode||'').replace(/'/g,"\\'");
+
+  document.getElementById('detail-grid').innerHTML = `
+    <div class="detail-cell"><div class="detail-label">Kode Item</div><div class="detail-value mono">${item.kode||'—'}</div></div>
+    <div class="detail-cell"><div class="detail-label">Jenis</div><div class="detail-value"><span class="badge badge-blue">${item.jenis||'—'}</span></div></div>
+    <div class="detail-cell full"><div class="detail-label">Nama Item</div><div class="detail-value">${item.nama||'—'}</div></div>
+    <div class="detail-cell"><div class="detail-label">Supplier</div><div class="detail-value">${item.supplier||'—'}</div></div>
+    <div class="detail-cell"><div class="detail-label">Tgl Beli Terakhir</div><div class="detail-value">${item.tglBeli||'—'}</div></div>
+    <div class="detail-cell"><div class="detail-label">Modal / Pokok</div><div class="detail-value mono">${fmtRp(modal)}</div></div>
+    <div class="detail-cell"><div class="detail-label">Harga Beli Terakhir</div><div class="detail-value mono">${fmtRp(item.hargaBeli)}</div></div>
+    <div class="detail-cell"><div class="detail-label">Harga Jual</div><div class="detail-value mono" style="color:var(--text);font-weight:700">${fmtRp(jual)}</div></div>
+    <div class="detail-cell"><div class="detail-label">Harga Grosir</div><div class="detail-value mono">${fmtRp(item.hargaGrosir)}</div></div>
+    <div class="detail-cell"><div class="detail-label">Margin</div><div class="detail-value" style="color:${mc};font-weight:700;font-family:var(--mono)">${m.toFixed(1)}% (${fmtRp(item.marginRp)})</div></div>
+    <div class="detail-cell"><div class="detail-label">Stok Grosir</div><div class="detail-value"><span class="snum ${sc(item.stokGrosir)}">${item.stokGrosir||0}</span></div></div>
+    <div class="detail-cell"><div class="detail-label">Stok Mart</div><div class="detail-value"><span class="snum ${sc(item.stokMart)}">${item.stokMart||0}</span></div></div>
+    <div class="detail-cell"><div class="detail-label">Total Stok</div><div class="detail-value"><span class="snum ${sc(item.totalStok)}" style="font-size:16px">${item.totalStok||0}</span></div></div>
+    <div class="detail-cell"><div class="detail-label">Potensi Profit</div><div class="detail-value mono" style="color:var(--yellow)">${fmtK((item.marginRp||0)*(item.totalStok||0))}</div></div>
+    <div class="detail-cell full"><div class="detail-label">Status</div><div class="detail-value">
+      ${item.totalStok===0?'<span class="badge badge-red">DEAD STOCK — Tidak ada stok</span>':item.totalStok<settings.minStok?'<span class="badge badge-yellow">PERLU ORDER — Stok di bawah minimum ('+settings.minStok+')</span>':'<span class="badge badge-green">STOK AMAN</span>'}
+      ${m<settings.marginRendah?' <span class="badge badge-red">MARGIN RENDAH</span>':''}
+    </div></div>`;
+
+  const purchases = pembelianData.filter(p=>p.kodeItem===kode);
+  const pEl = document.getElementById('detail-purchases');
+  if(purchases.length===0){
+    pEl.innerHTML = '<div style="font-size:11px;color:var(--text3)">Tidak ada riwayat pembelian. Upload file PEMBELIAN.xlsx untuk mencatat.</div>';
+  } else {
+    pEl.innerHTML = `<table style="font-size:11px"><thead><tr><th>Tanggal</th><th>No Trans</th><th>Supplier</th><th>Qty</th><th>Harga</th><th>Total</th></tr></thead><tbody>
+    ${purchases.map(p=>`<tr><td style="font-size:11px">${p.tanggal||'—'}</td><td class="mono" style="font-size:10px">${p.noTrans||'—'}</td><td>${p.supplier||'—'}</td><td class="mono">${p.qty||'—'} ${p.satuan||''}</td><td class="mono">${fmtRp(p.harga)}</td><td class="mono" style="font-weight:600">${fmtRp(p.total)}</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  document.getElementById('detail-edit-btn').setAttribute('onclick', `closeModal('detail-modal');editItem('${sk}')`);
+  document.getElementById('detail-modal').classList.remove('hidden');
+}
+
+// ============================================================
+// SMART ORDER — FIX: tambah filter supplier
+// ============================================================
+function renderSmartOrder(){
+  // Populate supplier filter
+  const supSel = document.getElementById('smart-sup-filter');
+  if(supSel){
+    const curVal = supSel.value;
+    const sups = [...new Set(items.filter(i=>i.totalStok<settings.minStok).map(i=>i.supplier).filter(Boolean))].sort();
+    supSel.innerHTML = '<option value="">Semua Supplier</option>';
+    sups.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; supSel.appendChild(o); });
+    supSel.value = curVal;
+  }
+
+  const filterSup = supSel?.value||'';
+  const orderItems = items.filter(i=>i.totalStok < settings.minStok).filter(i=>!filterSup||i.supplier===filterSup).map(i=>{
+    const kekurangan = settings.minStok - i.totalStok;
+    const rec = Math.ceil(kekurangan * (1 + settings.safetyStock/100));
+    const hb = parseFloat(i.hargaBeli)||parseFloat(i.modal)||0;
+    return {...i, kekurangan, rec, estTotal: rec*hb};
+  }).sort((a,b)=>a.totalStok-b.totalStok);
+
+  const tbody = document.getElementById('smart-tbody');
+  if(!tbody) return;
+  let totalBelanja = 0;
+
+  tbody.innerHTML = orderItems.map((item,idx)=>{
+    totalBelanja += item.estTotal;
+    const pr = item.totalStok===0?'badge-red':item.totalStok<settings.minStok*.5?'badge-yellow':'badge-gray';
+    const prLabel = item.totalStok===0?'KRITIS':item.totalStok<settings.minStok*.5?'TINGGI':'NORMAL';
+    return `<tr class="${item.totalStok===0?'order-row-highlight':''}">
+      <td>${idx+1}</td>
+      <td class="mono" style="font-size:10px">${item.kode}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nama}</td>
+      <td class="hide-mobile"><span class="badge badge-blue">${item.jenis||'—'}</span></td>
+      <td><span class="snum ${item.totalStok===0?'low':'medium'}">${item.totalStok}</span></td>
+      <td class="mono">${settings.minStok}</td>
+      <td style="color:var(--red);font-weight:600;font-family:var(--mono)">${item.kekurangan}</td>
+      <td style="color:var(--green);font-weight:700;font-family:var(--mono)">${item.rec}</td>
+      <td class="hide-mobile" style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.supplier||'—'}</td>
+      <td class="hide-mobile mono">${fmtRp(item.hargaBeli||item.modal)}</td>
+      <td class="mono" style="color:var(--yellow)">${fmtRp(item.estTotal)}</td>
+      <td><span class="badge ${pr}">${prLabel}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--green)">✓ Semua stok dalam kondisi aman!</td></tr>';
+
+  document.getElementById('smart-info').textContent = orderItems.length+' item perlu di-order';
+  document.getElementById('smart-total').textContent = fmtCurrency(totalBelanja);
+}
+
+// ============================================================
+// ANALISA MARGIN — FIX: marginPage reset saat filter berubah
+// ============================================================
+let marginFiltered = [];
+function renderMargin(){
+  const mf = document.getElementById('margin-filter')?.value||'';
+  marginFiltered = [...items].sort((a,b)=>b.marginPct-a.marginPct).filter(i=>{
+    if(mf==='rendah') return i.marginPct < settings.marginRendah && i.marginPct !== 0;
+    if(mf==='sedang') return i.marginPct >= settings.marginRendah && i.marginPct < 15;
+    if(mf==='baik') return i.marginPct >= 15;
+    return true;
+  });
+  marginPage = 1; // FIX: reset halaman saat filter berubah
+  renderMarginPage();
+}
+
+function renderMarginPage(){
+  const tbody = document.getElementById('margin-tbody');
+  if(!tbody) return;
+  const start = (marginPage-1)*PAGE_SIZE;
+  const page = marginFiltered.slice(start, start+PAGE_SIZE);
+
+  tbody.innerHTML = page.map(item=>{
+    const modal = parseFloat(item.modal)||parseFloat(item.hargaBeli)||0;
+    const m = item.marginPct||0;
+    const mc = m<settings.marginRendah?'var(--red)':m<15?'var(--yellow)':'var(--green)';
+    const status = m<settings.marginRendah?'<span class="badge badge-red">Rendah</span>':m<15?'<span class="badge badge-yellow">Sedang</span>':'<span class="badge badge-green">Baik</span>';
+    return `<tr>
+      <td class="mono" style="font-size:10px">${item.kode}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nama}</td>
+      <td class="hide-mobile"><span class="badge badge-blue">${item.jenis||'—'}</span></td>
+      <td class="mono">${fmtRp(modal)}</td>
+      <td class="mono" style="font-weight:600">${fmtRp(item.hargaJual)}</td>
+      <td>
+        <div class="margin-bar"><div class="bar-track"><div class="bar-fill" style="width:${Math.min(m,100)}%;background:${mc}"></div></div>
+        <span class="bar-pct ${m<settings.marginRendah?'low':m<15?'medium':'high'}">${m.toFixed(1)}%</span></div>
+      </td>
+      <td class="mono" style="color:${item.marginRp>=0?'var(--green)':'var(--red)'}">${fmtRp(item.marginRp)}</td>
+      <td>${status}</td>
+      <td class="mono">${item.totalStok||0}</td>
+      <td class="mono" style="color:var(--yellow)">${fmtRp((item.marginRp||0)*(item.totalStok||0))}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('margin-info').textContent = marginFiltered.length+' item';
+  renderPaginationGlobal('margin-info','margin-pg-btns', marginFiltered.length, marginPage, (p)=>{ marginPage=p; renderMarginPage(); });
+}
+
+// ============================================================
+// DASHBOARD — FIX: destroy chart sebelum recreate
+// ============================================================
+function renderDashboard(){
+  setTimeout(()=>{
+    renderChartStatus();
+    renderChartMarginDist();
+    renderTopMarginList();
+    renderKritisList();
+  }, 80);
+}
+
+function renderChartStatus(){
+  const ctx = document.getElementById('chart-status');
+  if(!ctx) return;
+  const aman = items.filter(i=>i.totalStok>=settings.minStok).length;
+  const perlu = items.filter(i=>i.totalStok>0&&i.totalStok<settings.minStok).length;
+  const dead = items.filter(i=>i.totalStok===0).length;
+
+  // FIX: destroy chart lama jika ada, cegah memory leak
+  if(charts.status){ charts.status.destroy(); charts.status=null; }
+
+  charts.status = new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:['Stok Aman','Perlu Order','Dead Stock'],datasets:[{data:[aman,perlu,dead],backgroundColor:['#22c55e','#eab308','#ef4444'],borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}},position:'bottom'}}}
+  });
+}
+
+function renderChartMarginDist(){
+  const ctx = document.getElementById('chart-margin');
+  if(!ctx) return;
+  const r = items.filter(i=>i.marginPct<settings.marginRendah&&i.marginPct!==0).length;
+  const s = items.filter(i=>i.marginPct>=settings.marginRendah&&i.marginPct<15).length;
+  const b = items.filter(i=>i.marginPct>=15&&i.marginPct<30).length;
+  const t = items.filter(i=>i.marginPct>=30).length;
+
+  // FIX: destroy chart lama
+  if(charts.margin){ charts.margin.destroy(); charts.margin=null; }
+
+  charts.margin = new Chart(ctx,{
+    type:'bar',
+    data:{labels:['Rendah','Sedang','Baik','Tinggi'],datasets:[{data:[r,s,b,t],backgroundColor:['#ef4444','#eab308','#22c55e','#3b82f6'],borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{grid:{color:'#2a3347'},ticks:{color:'#94a3b8'}},x:{grid:{color:'transparent'},ticks:{color:'#94a3b8'}}}}
+  });
+}
+
+function renderTopMarginList(){
+  const el = document.getElementById('top-margin-list');
+  if(!el) return;
+  const top = [...items].sort((a,b)=>b.marginPct-a.marginPct).slice(0,10);
+  const sk = k=>(k.kode||'').replace(/'/g,"\\'");
+  el.innerHTML = top.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="width:18px;font-size:10px;color:var(--text3);font-family:var(--mono)">${i+1}</span>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="item-link" onclick="showDetail('${sk(item)}')">${item.nama}</div>
+        <div style="font-size:10px;color:var(--text3)">${item.jenis||'—'}</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green)">${(item.marginPct||0).toFixed(1)}%</span>
+    </div>`).join('');
+}
+
+function renderKritisList(){
+  const el = document.getElementById('kritis-list');
+  if(!el) return;
+  const kritis = items.filter(i=>i.totalStok<settings.minStok).sort((a,b)=>a.totalStok-b.totalStok).slice(0,10);
+  const sk = k=>(k.kode||'').replace(/'/g,"\\'");
+  el.innerHTML = kritis.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="width:18px;font-size:10px;color:var(--text3);font-family:var(--mono)">${i+1}</span>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="item-link" onclick="showDetail('${sk(item)}')">${item.nama}</div>
+        <div style="font-size:10px;color:var(--text3)">${item.supplier||'No supplier'}</div>
+      </div>
+      <span class="snum ${item.totalStok===0?'low':'medium'}" style="font-size:13px;font-family:var(--mono)">${item.totalStok}</span>
+    </div>`).join('') || '<div style="text-align:center;padding:20px;color:var(--text3)">Semua stok aman!</div>';
+}
+
+// ============================================================
+// SUPPLIER ANALYSIS
+// ============================================================
+function renderSupplier(){
+  const el = document.getElementById('supplier-content');
+  if(!el) return;
+  const map = {};
+  items.forEach(i=>{
+    const s = i.supplier?.trim()||'Tanpa Supplier';
+    if(!map[s]) map[s]={name:s,count:0,totalStok:0,nilai:0,perluOrder:0,totalMargin:0};
+    map[s].count++;
+    map[s].totalStok += i.totalStok||0;
+    map[s].nilai += (parseFloat(i.hargaBeli)||parseFloat(i.modal)||0)*(i.totalStok||0);
+    if(i.totalStok < settings.minStok) map[s].perluOrder++;
+    map[s].totalMargin += i.marginPct||0;
+  });
+
+  el.innerHTML = `<div class="table-wrap"><div class="table-scroll"><table>
+    <thead><tr><th>Supplier</th><th>Jumlah SKU</th><th>Total Stok</th><th>Nilai Inventori</th><th>Perlu Order</th><th>Avg Margin</th></tr></thead>
+    <tbody>${Object.values(map).sort((a,b)=>b.count-a.count).map(s=>{
+      const avg = s.count ? s.totalMargin/s.count : 0;
+      const mc = avg<settings.marginRendah?'var(--red)':avg<15?'var(--yellow)':'var(--green)';
+      return `<tr>
+        <td style="font-weight:600">${s.name}</td>
+        <td class="mono">${s.count}</td>
+        <td class="mono">${s.totalStok}</td>
+        <td class="mono" style="color:var(--yellow)">${fmtCurrency(s.nilai)}</td>
+        <td><span class="badge ${s.perluOrder>0?'badge-red':'badge-green'}">${s.perluOrder}</span></td>
+        <td><div class="margin-bar"><div class="bar-track"><div class="bar-fill" style="width:${Math.min(avg,100)}%;background:${mc}"></div></div><span class="bar-pct" style="color:${mc}">${avg.toFixed(1)}%</span></div></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+}
+
+// ============================================================
+// PEMBELIAN — FIX: repopulate filter setiap render
+// ============================================================
+function filterPembelian(){
+  const q = document.getElementById('pb-search')?.value.toLowerCase()||'';
+  const ps = document.getElementById('pb-supplier')?.value||'';
+  pembelianFiltered = pembelianData.filter(p=>{
+    if(q && !p.supplier?.toLowerCase().includes(q) && !p.namaItem?.toLowerCase().includes(q) && !p.kodeItem?.includes(q)) return false;
+    if(ps && p.supplier !== ps) return false;
+    return true;
+  });
+  pbPage = 1;
+  renderPembelianPage();
+}
+
+function renderPembelian(){
+  // FIX: Selalu rebuild filter supplier
+  const ps = document.getElementById('pb-supplier');
+  if(ps){
+    const curVal = ps.value;
+    const sups = [...new Set(pembelianData.map(p=>p.supplier).filter(Boolean))].sort();
+    ps.innerHTML = '<option value="">Semua Supplier</option>';
+    sups.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; ps.appendChild(o); });
+    ps.value = curVal;
+  }
+  pembelianFiltered = [...pembelianData];
+  renderPembelianPage();
+}
+
+function renderPembelianPage(){
+  const tbody = document.getElementById('pb-tbody');
+  if(!tbody) return;
+  const start = (pbPage-1)*PAGE_SIZE;
+  const page = pembelianFiltered.slice(start, start+PAGE_SIZE);
+
+  tbody.innerHTML = page.map(p=>`<tr>
+    <td class="mono" style="font-size:10px">${p.noTrans||'—'}</td>
+    <td style="font-size:11px">${p.tanggal||'—'}</td>
+    <td style="font-size:11px;font-weight:500">${p.supplier||'—'}</td>
+    <td class="hide-mobile mono" style="font-size:10px">${p.kodeItem||'—'}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${p.namaItem||'—'}</td>
+    <td class="mono">${p.qty||'—'}</td>
+    <td class="hide-mobile" style="font-size:11px">${p.satuan||'—'}</td>
+    <td class="mono">${fmtRp(p.harga)}</td>
+    <td class="mono" style="font-weight:600;color:var(--yellow)">${fmtRp(p.total)}</td>
+  </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">Belum ada data pembelian. Upload file PEMBELIAN.xlsx di menu Update Data.</td></tr>';
+
+  document.getElementById('pb-info').textContent = pembelianFiltered.length+' transaksi';
+  renderPaginationGlobal('pb-info','pb-pg-btns', pembelianFiltered.length, pbPage, (p)=>{ pbPage=p; renderPembelianPage(); });
+}
+
+// ============================================================
+// PERFORMA
+// ============================================================
+function renderPerforma(){
+  const nilai = items.reduce((s,i)=>{const m=parseFloat(i.modal)||parseFloat(i.hargaBeli)||0; return s+m*(i.totalStok||0);},0);
+  const avg = items.length ? items.reduce((s,i)=>s+(i.marginPct||0),0)/items.length : 0;
+  const kritis = items.filter(i=>i.totalStok<settings.minStok).length;
+  document.getElementById('perf-nilai').textContent = fmtCurrency(nilai);
+  document.getElementById('perf-avg').textContent = avg.toFixed(1)+'%';
+  document.getElementById('perf-kritis').textContent = kritis;
+
+  const jMap = {};
+  items.forEach(i=>{
+    const j=i.jenis||'Lainnya';
+    if(!jMap[j]) jMap[j]={j,c:0,stok:0,margin:0,order:0,nilai:0,profit:0};
+    jMap[j].c++;
+    jMap[j].stok+=i.totalStok||0;
+    jMap[j].margin+=i.marginPct||0;
+    if(i.totalStok<settings.minStok) jMap[j].order++;
+    jMap[j].nilai+=(parseFloat(i.modal)||parseFloat(i.hargaBeli)||0)*(i.totalStok||0);
+    jMap[j].profit+=(i.marginRp||0)*(i.totalStok||0);
+  });
+
+  const tbody = document.getElementById('perf-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = Object.values(jMap).sort((a,b)=>b.c-a.c).map(s=>{
+    const avg=s.c?s.margin/s.c:0;
+    const mc=avg<settings.marginRendah?'var(--red)':avg<15?'var(--yellow)':'var(--green)';
+    return `<tr>
+      <td><span class="badge badge-blue">${s.j}</span></td>
+      <td class="mono">${s.c}</td>
+      <td class="mono">${s.stok}</td>
+      <td><div class="margin-bar"><div class="bar-track"><div class="bar-fill" style="width:${Math.min(avg,100)}%;background:${mc}"></div></div><span class="bar-pct" style="color:${mc}">${avg.toFixed(1)}%</span></div></td>
+      <td><span class="badge ${s.order>0?'badge-red':'badge-green'}">${s.order}</span></td>
+      <td class="mono" style="color:var(--yellow)">${fmtCurrency(s.nilai)}</td>
+      <td class="mono" style="color:var(--green)">${fmtCurrency(s.profit)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// RIWAYAT HARGA
+// ============================================================
+function renderHargaHistory(){
+  const tbody = document.getElementById('harga-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = [...priceHistory].reverse().map(h=>{
+    const diff = h.baru-h.lama;
+    const pct = h.lama ? ((diff/h.lama)*100).toFixed(1) : 0;
+    return `<tr>
+      <td style="font-size:11px">${h.tgl}</td>
+      <td class="mono" style="font-size:10px">${h.kode}</td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.nama}</td>
+      <td class="mono">${fmtRp(h.lama)}</td>
+      <td class="mono" style="font-weight:600">${fmtRp(h.baru)}</td>
+      <td class="mono" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${fmtRp(diff)}</td>
+      <td><span class="badge ${diff>=0?'badge-green':'badge-red'}">${diff>=0?'+':''}${pct}%</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Belum ada riwayat perubahan harga.</td></tr>';
+}
+
+function clearHargaHistory(){
+  if(!confirm('Hapus semua riwayat perubahan harga?')) return;
+  priceHistory = [];
+  saveLS();
+  renderHargaHistory();
+  showNotif('Riwayat dihapus','success');
+}
+
+// ============================================================
+// ADD / EDIT / DELETE
+// ============================================================
+function openAddModal(){
+  editingKode = null;
+  document.getElementById('modal-title').textContent = 'Tambah Item Baru';
+  ['f-kode','f-nama','f-jenis-inp','f-supplier-inp','f-modal','f-hargabeli','f-hargajual','f-hargagrosir','f-stokgrosir','f-stokmart'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-tglbeli').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-margin-prev').textContent = '— %';
+  document.getElementById('item-modal').classList.remove('hidden');
+}
+
+function editItem(kode){
+  const item = items.find(i=>i.kode===kode);
+  if(!item) return;
+  editingKode = kode;
+  document.getElementById('modal-title').textContent = 'Edit: '+item.nama;
+  document.getElementById('f-kode').value = item.kode||'';
+  document.getElementById('f-nama').value = item.nama||'';
+  document.getElementById('f-jenis-inp').value = item.jenis||'';
+  document.getElementById('f-supplier-inp').value = item.supplier||'';
+  document.getElementById('f-tglbeli').value = item.tglBeli||'';
+  document.getElementById('f-modal').value = item.modal||'';
+  document.getElementById('f-hargabeli').value = item.hargaBeli||'';
+  document.getElementById('f-hargajual').value = item.hargaJual||'';
+  document.getElementById('f-hargagrosir').value = item.hargaGrosir||'';
+  document.getElementById('f-stokgrosir').value = item.stokGrosir||'';
+  document.getElementById('f-stokmart').value = item.stokMart||'';
+  calcMarginPrev();
+  document.getElementById('item-modal').classList.remove('hidden');
+}
+
+function calcMarginPrev(){
+  const modal = parseFloat(document.getElementById('f-modal').value)||0;
+  const jual = parseFloat(document.getElementById('f-hargajual').value)||0;
+  const el = document.getElementById('f-margin-prev');
+  if(modal>0&&jual>0){
+    const m = ((jual-modal)/modal*100);
+    el.textContent = m.toFixed(1)+'%';
+    el.style.color = m<settings.marginRendah?'var(--red)':m<15?'var(--yellow)':'var(--green)';
+  } else el.textContent = '— %';
+}
+
+function saveItem(){
+  const kode = document.getElementById('f-kode').value.trim();
+  const nama = document.getElementById('f-nama').value.trim();
+  const jual = parseFloat(document.getElementById('f-hargajual').value)||0;
+  if(!kode||!nama) return showNotif('Kode dan Nama wajib diisi!','error');
+
+  const newItem = {
+    kode, nama,
+    jenis: (document.getElementById('f-jenis-inp').value||'').trim().toUpperCase(),
+    supplier: (document.getElementById('f-supplier-inp').value||'').trim(),
+    tglBeli: document.getElementById('f-tglbeli').value,
+    modal: parseFloat(document.getElementById('f-modal').value)||0,
+    hargaBeli: parseFloat(document.getElementById('f-hargabeli').value)||0,
+    hargaJual: jual,
+    hargaGrosir: parseFloat(document.getElementById('f-hargagrosir').value)||0,
+    stokGrosir: parseInt(document.getElementById('f-stokgrosir').value)||0,
+    stokMart: parseInt(document.getElementById('f-stokmart').value)||0,
+  };
+  calcStats(newItem);
+
+  if(editingKode){
+    const idx = items.findIndex(i=>i.kode===editingKode);
+    if(idx>=0){
+      const old = items[idx];
+      if(old.hargaJual !== newItem.hargaJual){
+        priceHistory.push({tgl:new Date().toLocaleString('id-ID'),kode,nama,lama:old.hargaJual,baru:newItem.hargaJual});
+      }
+      items[idx] = newItem;
+    }
+    showNotif('Item berhasil diupdate!','success');
+  } else {
+    if(items.find(i=>i.kode===kode)) return showNotif('Kode item sudah ada!','error');
+    items.push(newItem);
+    showNotif('Item berhasil ditambahkan!','success');
+  }
+
+  filteredItems = [...items];
+  saveLS();
+  updateStats();
+  filterItems();
+  closeModal('item-modal');
+}
+
+function deleteItem(kode){
+  const item = items.find(i=>i.kode===kode);
+  if(!item||!confirm(`Hapus "${item.nama}"?`)) return;
+  items = items.filter(i=>i.kode!==kode);
+  filteredItems = filteredItems.filter(i=>i.kode!==kode);
+  saveLS();
+  updateStats();
+  renderItemTable();
+  showNotif('Item dihapus','success');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function applySettingsToForm(){
+  document.getElementById('set-minstok').value = settings.minStok;
+  document.getElementById('set-margin').value = settings.marginRendah;
+  document.getElementById('set-lead').value = settings.leadTime;
+  document.getElementById('set-safety').value = settings.safetyStock;
+  document.getElementById('set-wa').value = settings.wa||'';
+  document.getElementById('set-tokoname').value = settings.tokoName;
+  document.getElementById('set-user').value = AUTH.getUser();
+  updateWAPreview();
+}
+
+function saveSettings(){
+  settings.minStok = parseInt(document.getElementById('set-minstok').value)||50;
+  settings.marginRendah = parseFloat(document.getElementById('set-margin').value)||3;
+  settings.leadTime = parseInt(document.getElementById('set-lead').value)||14;
+  settings.safetyStock = parseFloat(document.getElementById('set-safety').value)||20;
+  settings.wa = (document.getElementById('set-wa').value||'').trim();
+  settings.tokoName = document.getElementById('set-tokoname').value||'ILMI GROUP';
+  saveLS();
+  updateStats();
+  updateSidebarInfo();
+  updateWAPreview();
+  showNotif('Pengaturan disimpan!','success');
+}
+
+function updateWAPreview(){
+  const el = document.getElementById('wa-preview');
+  if(!el) return;
+  const orderItems = items.filter(i=>i.totalStok<settings.minStok).slice(0,5);
+  let msg = `*${settings.tokoName} - STOCK ALERT* 📦\nTanggal: ${new Date().toLocaleDateString('id-ID')}\n\n`;
+  msg += `⚠️ *${items.filter(i=>i.totalStok<settings.minStok).length} item perlu di-order:*\n\n`;
+  orderItems.forEach((i,idx)=>{
+    msg += `${idx+1}. ${i.nama}\n   Stok: ${i.totalStok} | Min: ${settings.minStok}\n`;
+  });
+  if(items.filter(i=>i.totalStok<settings.minStok).length>5) msg += `\n...dan ${items.filter(i=>i.totalStok<settings.minStok).length-5} item lainnya`;
+  el.innerHTML = msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>');
+}
+
+function sendWhatsApp(){
+  if(!settings.wa){ showNotif('Set nomor WhatsApp di Pengaturan!','error'); return; }
+  const oi = items.filter(i=>i.totalStok<settings.minStok);
+  let msg = `*${settings.tokoName} - STOCK ALERT* 📦\nTanggal: ${new Date().toLocaleDateString('id-ID')}\n\n`;
+  msg += `⚠️ *${oi.length} item perlu di-order:*\n\n`;
+  oi.slice(0,30).forEach((i,idx)=>{
+    msg += `${idx+1}. ${i.nama}\n   Stok: ${i.totalStok} | Kurang: ${settings.minStok-i.totalStok} | Supplier: ${i.supplier||'—'}\n`;
+  });
+  msg += `\n_Stock Tracking System - ILMI GROUP_`;
+  window.open(`https://wa.me/${settings.wa}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function exportOrderTxt(){
+  const oi = items.filter(i=>i.totalStok<settings.minStok);
+  let txt = `SMART ORDER - ${settings.tokoName}\nTanggal: ${new Date().toLocaleDateString('id-ID')}\n${'='.repeat(60)}\n`;
+  oi.forEach((i,idx)=>{
+    const k=settings.minStok-i.totalStok;
+    const rec=Math.ceil(k*(1+settings.safetyStock/100));
+    txt += `${idx+1}. ${i.nama}\n   Stok: ${i.totalStok} | Kurang: ${k} | Rekomendasi: ${rec} | Supplier: ${i.supplier||'—'}\n`;
+  });
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='smart-order.txt'; a.click();
+}
+
+// ============================================================
+// FIX: Pagination global handler (bukan toString)
+// ============================================================
+function renderPaginationGlobal(infoId, btnsId, total, current, onPage){
+  const pages = Math.ceil(total/PAGE_SIZE)||1;
+  const infoEl = document.getElementById(infoId);
+  const btnsEl = document.getElementById(btnsId);
+  if(!btnsEl) return;
+  if(infoEl) infoEl.textContent = `Halaman ${current}/${pages} (${total} item)`;
+
+  let html = '';
+  if(current>1) html += `<button class="page-btn" data-pg="${current-1}">‹</button>`;
+  const from = Math.max(1,current-2), to = Math.min(pages,current+2);
+  for(let p=from;p<=to;p++){
+    html += `<button class="page-btn${p===current?' active':''}" data-pg="${p}">${p}</button>`;
+  }
+  if(current<pages) html += `<button class="page-btn" data-pg="${current+1}">›</button>`;
+  btnsEl.innerHTML = html;
+}
+
+// Global click handler untuk semua pagination buttons
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.page-btn');
+  if(!btn || !btn.dataset.pg) return;
+  const p = parseInt(btn.dataset.pg);
+  if(isNaN(p)) return;
+
+  // Tentukan fungsi pagination mana yang aktif berdasarkan parent container
+  if(btn.closest('#tab-barang') || btn.id?.startsWith('pg')){
+    currentPage = p; renderItemTable();
+  } else if(btn.closest('#tab-margin')){
+    marginPage = p; renderMarginPage();
+  } else if(btn.closest('#tab-pembelian')){
+    pbPage = p; renderPembelianPage();
+  }
+});
+
+// ============================================================
+// MODAL
+// ============================================================
+function closeModal(id){ document.getElementById(id)?.classList.add('hidden'); }
+document.addEventListener('click', e=>{ if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m=>m.classList.add('hidden')); });
+
+// ============================================================
+// NOTIF
+// ============================================================
+function showNotif(msg, type='success'){
+  const c = document.getElementById('notif-container');
+  const el = document.createElement('div');
+  el.className = `notif-item ${type}`;
+  el.innerHTML = `<span>${type==='success'?'✓':'⚠'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3500);
+}
+
+// ============================================================
+// FORMATTERS
+// ============================================================
+function fmtRp(n){
+  if(n===null||n===undefined||n==='') return '—';
+  const v = parseFloat(n);
+  if(isNaN(v)) return '—';
+  return 'Rp'+Math.round(v).toLocaleString('id-ID');
+}
+function fmtCurrency(n){
+  const v = parseFloat(n)||0;
+  if(v>=1000000000) return 'Rp'+(v/1000000000).toFixed(1)+'M';
+  if(v>=1000000) return 'Rp'+(v/1000000).toFixed(1)+'jt';
+  if(v>=1000) return 'Rp'+(v/1000).toFixed(0)+'rb';
+  return 'Rp'+Math.round(v);
+}
+function fmtK(n){ return fmtCurrency(n); }
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportXLSX(){
+  items.forEach(calcStats);
+  const headers = ['Kode Item','Nama','Jenis','Supplier','Tgl Beli Terakhir','Modal','Harga Beli','Harga Jual','Harga Grosir','Stok Grosir','Stok Mart','Total Stok','Margin %','Margin Rp','Potensi Profit'];
+  const rows = (filteredItems.length > 0 ? filteredItems : items).map(i=>[
+    i.kode, i.nama, i.jenis, i.supplier, i.tglBeli,
+    i.modal, i.hargaBeli, i.hargaJual, i.hargaGrosir||0,
+    i.stokGrosir, i.stokMart, i.totalStok,
+    parseFloat((i.marginPct||0).toFixed(2)), i.marginRp||0,
+    parseFloat(((i.marginRp||0)*(i.totalStok||0)).toFixed(0))
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers,...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Stock Data');
+  XLSX.writeFile(wb,`stock-ilmigroup-${new Date().toISOString().split('T')[0]}.xlsx`);
+  showNotif('Data berhasil diekspor!','success');
+}
+
+// ============================================================
+// BACKUP / RESTORE
+// ============================================================
+function updateBackupInfo(){
+  document.getElementById('bk-items').textContent = items.length;
+  document.getElementById('bk-pb').textContent = [...new Set(pembelianData.map(p=>p.noTrans))].length;
+  document.getElementById('bk-harga').textContent = priceHistory.length;
+}
+
+function backupData(){
+  const data = {
+    version: 2,
+    exportDate: new Date().toISOString(),
+    items, settings, priceHistory, pembelianData
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ilmi-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  showNotif('Backup berhasil diunduh!','success');
+}
+
+function restoreData(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('status-backup');
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.items) throw new Error('Format backup tidak valid');
+      if(!confirm(`Restore backup ${file.name}?\nData saat ini akan diganti.\n(${data.items.length} item dari ${data.exportDate?.split('T')[0]||'?'})`)) return;
+      items = data.items || [];
+      settings = {...settings, ...(data.settings||{})};
+      priceHistory = data.priceHistory || [];
+      pembelianData = data.pembelianData || [];
+      items.forEach(calcStats);
+      filteredItems = [...items];
+      saveLS();
+      updateStats();
+      applySettingsToForm();
+      filterItems();
+      updateBackupInfo();
+      statusEl.innerHTML = `<span style="color:var(--green)">✓ Restore berhasil! ${items.length} item dipulihkan.</span>`;
+      showNotif(`Restore berhasil! ${items.length} item.`,'success');
+    } catch(err){
+      statusEl.innerHTML = `<span style="color:var(--red)">✗ Error: ${err.message}</span>`;
+      showNotif('Gagal restore: file tidak valid!','error');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function clearAllData(){
+  if(!confirm('HAPUS SEMUA DATA?\nTindakan ini tidak bisa dibatalkan!')) return;
+  if(!confirm('Yakin? Semua item, pembelian, dan riwayat harga akan dihapus!')) return;
+  items=[]; filteredItems=[]; pembelianData=[]; priceHistory=[];
+  ['ilmi_items','ilmi_priceHistory','ilmi_pembelian'].forEach(k=>localStorage.removeItem(k));
+  updateStats(); filterItems(); updateBackupInfo();
+  showNotif('Semua data telah dihapus','success');
+}
+
+// ============================================================
+// EXCEL IMPORT – IPOS 5
+// ============================================================
+function parseIPOS5(rawData){
+  const kodeMap = {};
+  for(let i=1; i<rawData.length; i++){
+    const row = rawData[i];
+    if(!row) continue;
+    const kode = String(row[0]||'').trim();
+    const nama = String(row[1]||'').trim();
+    if(!kode || !nama || kode==='NaN') continue;
+    const satuan = String(row[4]||'').trim().toUpperCase();
+    const stok = parseFloat(row[3])||0;
+    const pokok = parseFloat(row[7])||0;
+    const hargaRetail = parseFloat(row[8])||0;
+    const hargaGrosir = parseFloat(row[9])||0;
+    const jenis = String(row[2]||'').trim().toUpperCase();
+    const isi = parseInt(row[5])||1;
+
+    if(satuan === 'PCS'){
+      kodeMap[kode] = {
+        kode, nama, jenis,
+        stokGrosir: Math.floor(stok), stokMart: 0,
+        modal: pokok, hargaBeli: pokok, hargaJual: hargaRetail,
+        hargaGrosir: hargaGrosir, supplier: '', tglBeli: ''
+      };
+    } else if(satuan === 'DUS' && !kodeMap[kode]){
+      kodeMap[kode] = {
+        kode, nama, jenis,
+        stokGrosir: Math.floor(stok * isi), stokMart: 0,
+        modal: isi>0 ? Math.round(pokok/isi) : pokok,
+        hargaBeli: isi>0 ? Math.round(pokok/isi) : pokok,
+        hargaJual: isi>0 ? Math.round(hargaRetail/isi) : hargaRetail,
+        hargaGrosir: hargaGrosir>0 ? Math.round(hargaGrosir/isi) : 0,
+        supplier: '', tglBeli: ''
+      };
+    }
+  }
+  return Object.values(kodeMap);
+}
+
+// ============================================================
+// EXCEL IMPORT – DATA IP4 (Mart)
+// ============================================================
+function parseIP4(rawData){
+  const result = [];
+  for(let i=7; i<rawData.length; i++){
+    const row = rawData[i];
+    if(!row) continue;
+    const kode = String(row[1]||'').trim();
+    const nama = String(row[4]||'').trim();
+    if(!kode || !nama || kode==='NaN') continue;
+    result.push({
+      kode, nama,
+      stokMart: parseInt(row[7])||0,
+      modalMart: parseFloat(row[9])||0,
+      hargaRetailMart: parseFloat(row[12])||0,
+    });
+  }
+  return result;
+}
+
+// ============================================================
+// EXCEL IMPORT – PEMBELIAN
+// ============================================================
+function parsePembelian(rawData){
+  const purchases = [];
+  const supplierPerItem = {};
+  let currentTrans = '', currentSupplier = '', currentDate = '', inDetail = false;
+
+  for(let i=0; i<rawData.length; i++){
+    const row = rawData[i];
+    if(!row) continue;
+    const c2 = String(row[2]||'').trim();
+    const c6 = row[6];
+    const c11 = String(row[11]||'').trim();
+
+    if(c2 && c2.includes('/') && c2.split('/').length>=3 && c11){
+      currentTrans = c2;
+      currentSupplier = c11;
+      if(c6 instanceof Date) currentDate = c6.toISOString().split('T')[0];
+      else if(c6) currentDate = String(c6).split(' ')[0];
+      inDetail = false;
+      continue;
+    }
+    if(c2 === 'No.' || c2 === 'No') { inDetail = true; continue; }
+    if(c2 === 'Pot. :' || c2 === 'Pot.:') { inDetail = false; continue; }
+
+    if(inDetail && c2 && !isNaN(parseInt(c2)) && parseInt(c2) > 0){
+      const kodeItem = String(row[3]||'').trim();
+      const namaItem = String(row[6]||'').trim();
+      const qty = parseFloat(row[17])||1;
+      const satuan = String(row[18]||'').trim();
+      const harga = parseFloat(row[21])||0;
+      const total = parseFloat(row[27])||0;
+
+      if(kodeItem){
+        purchases.push({
+          noTrans: currentTrans, tanggal: currentDate,
+          supplier: currentSupplier, kodeItem, namaItem,
+          qty, satuan, harga, total
+        });
+        if(!supplierPerItem[kodeItem] || currentDate > (supplierPerItem[kodeItem].tglBeli||'')){
+          supplierPerItem[kodeItem] = { supplier: currentSupplier, tglBeli: currentDate, hargaBeli: harga };
+        }
+      }
+    }
+  }
+  return { purchases, supplier
