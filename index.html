@@ -205,6 +205,20 @@ tr:hover td{background:var(--bg3);color:var(--text)}
 .kritis-row{background:rgba(239,68,68,.07)!important}
 .kritis-row td{color:var(--text)!important}
 
+/* KRITIS MART PANEL */
+.km-banner{background:linear-gradient(135deg,rgba(249,115,22,.12),rgba(239,68,68,.08));border:1px solid var(--orange);border-radius:var(--radius2);padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.km-banner-ico{font-size:22px;flex-shrink:0}
+.km-banner-txt{flex:1;min-width:160px}
+.km-banner-title{font-size:13px;font-weight:700;color:var(--orange)}
+.km-banner-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.km-badge-count{background:var(--orangebg);color:#fdba74;border:1px solid #92400e;font-size:20px;font-weight:700;font-family:var(--mono);padding:4px 14px;border-radius:8px;flex-shrink:0}
+.km-table-row td{background:rgba(249,115,22,.06)!important}
+.km-stok-mart{color:var(--red);font-weight:700;font-family:var(--mono);font-size:13px}
+.km-stok-grosir{color:var(--green);font-weight:700;font-family:var(--mono);font-size:13px}
+.km-chip{display:inline-flex;align-items:center;gap:4px;background:var(--orangebg);color:#fdba74;border:1px solid #92400e;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700}
+.km-panel-empty{text-align:center;padding:32px;color:var(--green);font-size:13px}
+.km-sc{background:linear-gradient(135deg,var(--orangebg),rgba(124,45,18,.6));border:1px solid #92400e}
+
 /* NOTIF */
 .ncontainer{position:fixed;top:58px;right:12px;z-index:3000;display:flex;flex-direction:column;gap:7px;max-width:290px;pointer-events:none}
 .nitem{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;font-size:12px;animation:nslide .2s ease;display:flex;align-items:center;gap:7px;box-shadow:0 4px 18px rgba(0,0,0,.45);pointer-events:all}
@@ -322,6 +336,8 @@ tr:hover td{background:var(--bg3);color:var(--text)}
     <div class="si" id="si-update" onclick="gotoTab('update')"><span class="si-ico">⬆</span>Update Data Excel</div>
     <div class="si" id="si-sinkron" onclick="gotoTab('sinkron')"><span class="si-ico">🔄</span>Sinkronasi Harga</div>
     <div class="si" id="si-backup" onclick="gotoTab('backup')"><span class="si-ico">💾</span>Backup & Restore</div>
+    <div class="sl" style="margin-top:6px">Analisa Stok</div>
+    <div class="si" id="si-kritis-mart" onclick="gotoTab('kritis-mart')"><span class="si-ico">🏪</span>Kritis Mart <span id="sb-km-count" style="margin-left:auto;background:var(--orangebg);color:#fdba74;font-size:9px;padding:1px 5px;border-radius:4px;display:none">0</span></div>
     <div class="sl" style="margin-top:6px">Sistem</div>
     <div class="si" id="si-settings" onclick="gotoTab('settings')"><span class="si-ico">⚙</span>Pengaturan</div>
     <div class="si" id="si-help" onclick="gotoTab('help')"><span class="si-ico">📖</span>Panduan & Deploy</div>
@@ -356,10 +372,21 @@ tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="sc c-p" onclick="activateTab('performa')"><div class="sc-label">Nilai Inventori <span>🏦</span></div><div class="sc-val" id="s-nilai" style="font-size:13px">0</div><div class="sc-sub">Modal × Stok</div></div>
   <div class="sc c-b" onclick="activateTab('pembelian')"><div class="sc-label">Data Pembelian <span>📋</span></div><div class="sc-val" id="s-pb">0</div><div class="sc-sub">Transaksi tercatat</div></div>
 </div>
+<!-- KRITIS MART BANNER -->
+<div id="km-alert-banner" class="km-banner hidden">
+  <div class="km-banner-ico">🏪⚠</div>
+  <div class="km-banner-txt">
+    <div class="km-banner-title">Stok Mart Kritis — Tersedia di Grosir!</div>
+    <div class="km-banner-sub" id="km-banner-sub">Ada barang stok Mart &lt; 4 yang masih ada stoknya di Grosir. Segera pindahkan stok!</div>
+  </div>
+  <div class="km-badge-count" id="km-banner-count">0</div>
+  <button class="btn btn-o" onclick="activateTab('kritis-mart')" style="flex-shrink:0">🔍 Lihat Detail →</button>
+</div>
 
 <!-- TABS -->
 <div class="tabbar">
   <button class="tbtn active" id="tb-barang" onclick="activateTab('barang')">☰ Daftar Barang</button>
+  <button class="tbtn" id="tb-kritis-mart" onclick="activateTab('kritis-mart')">🏪 Kritis Mart</button>
   <button class="tbtn" id="tb-smart" onclick="activateTab('smart')">⚡ Smart Order</button>
   <button class="tbtn" id="tb-margin" onclick="activateTab('margin')">📈 Analisa Margin</button>
   <button class="tbtn" id="tb-dashboard" onclick="activateTab('dashboard')">📊 Dashboard</button>
@@ -382,6 +409,7 @@ tr:hover td{background:var(--bg3);color:var(--text)}
       <option value="dead-stock">Dead Stock</option>
       <option value="margin-rendah">Margin Rendah</option>
       <option value="ada-supplier">Ada Supplier</option>
+      <option value="kritis-mart">Kritis Mart (&lt;4)</option>
     </select>
     <button class="btn btn-p" onclick="openAddItem()">+ Tambah</button>
     <button class="btn btn-s" onclick="exportXLSX()">⬇ Export</button>
@@ -402,6 +430,88 @@ tr:hover td{background:var(--bg3);color:var(--text)}
       </table>
     </div>
     <div class="pgbar"><div class="pginfo" id="barang-pg-info">Halaman 1</div><div class="pgbtns" id="barang-pg-btns"></div></div>
+  </div>
+</div>
+
+<!-- TAB: KRITIS MART -->
+<div id="tab-kritis-mart" class="hidden">
+  <div class="stitle">
+    <span>🏪 Stok Mart Kritis (&lt;4) — Tersedia di Grosir</span>
+    <div class="flex gap-8" style="flex-wrap:wrap">
+      <select class="fsel" id="f-km-jenis" onchange="renderKritisMart()"><option value="">Semua Jenis</option></select>
+      <select class="fsel" id="f-km-suppl" onchange="renderKritisMart()"><option value="">Semua Supplier</option></select>
+      <input class="sinput" type="text" id="q-km" placeholder="🔍 Cari kode/nama..." oninput="renderKritisMart()" style="max-width:190px">
+      <button class="btn btn-o" onclick="exportKritisMartWA()">📱 Kirim WA</button>
+      <button class="btn btn-s" onclick="renderKritisMart()">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
+    <div class="sc km-sc" style="cursor:default">
+      <div class="sc-label" style="color:#fdba74">Kritis Mart &lt;4 <span>🏪</span></div>
+      <div class="sc-val" id="km-count-total" style="color:var(--orange)">0</div>
+      <div class="sc-sub">Item stok mart &lt; 4</div>
+    </div>
+    <div class="sc c-r" style="cursor:default">
+      <div class="sc-label">Stok 0 di Mart <span>🚫</span></div>
+      <div class="sc-val" id="km-count-zero">0</div>
+      <div class="sc-sub">Habis di Mart</div>
+    </div>
+    <div class="sc c-g" style="cursor:default">
+      <div class="sc-label">Total Stok Grosir <span>📦</span></div>
+      <div class="sc-val" id="km-total-grosir" style="font-size:14px">0</div>
+      <div class="sc-sub">Tersedia pindah</div>
+    </div>
+    <div class="sc c-b" style="cursor:default">
+      <div class="sc-label">Estimasi Nilai <span>💰</span></div>
+      <div class="sc-val" id="km-nilai" style="font-size:13px">Rp0</div>
+      <div class="sc-sub">Nilai stok grosir</div>
+    </div>
+  </div>
+
+  <!-- Info Bar -->
+  <div style="background:rgba(249,115,22,.08);border:1px solid #92400e;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:16px">💡</span>
+    <span>Daftar ini menampilkan barang yang <b style="color:var(--orange)">stok Mart &lt; 4</b> namun masih <b style="color:var(--green)">ada stok di Grosir</b>. Segera pindahkan stok dari Grosir ke Mart agar tidak kehabisan.</span>
+  </div>
+
+  <!-- Table -->
+  <div class="twrap">
+    <div class="thead2">
+      <div class="tinfo" id="km-table-info">0 item</div>
+      <div class="flex gap-8">
+        <button class="btn btn-sm btn-s" onclick="doKmSort('stokMart')">↕ Stok Mart</button>
+        <button class="btn btn-sm btn-s" onclick="doKmSort('stokGrosir')">↕ Stok Grosir</button>
+        <button class="btn btn-sm btn-s" onclick="doKmSort('nama')">↕ Nama</button>
+      </div>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Kode Item</th>
+            <th>Nama Item</th>
+            <th>Jenis</th>
+            <th>Supplier</th>
+            <th style="color:var(--red)">Stok Mart</th>
+            <th style="color:var(--green)">Stok Grosir</th>
+            <th>Total Stok</th>
+            <th>Modal</th>
+            <th>Harga Jual</th>
+            <th>Margin %</th>
+            <th>Status Mart</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="km-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pgbar">
+      <div class="pginfo" id="km-pg-info">Halaman 1</div>
+      <div class="pgbtns" id="km-pg-btns"></div>
+    </div>
   </div>
 </div>
 
@@ -1011,7 +1121,7 @@ function gotoTab(t){
 // ============================================================
 // TABS
 // ============================================================
-const ALL_TABS=['barang','smart','margin','dashboard','supplier','pembelian','performa','harga','sinkron','update','backup','settings','help'];
+const ALL_TABS=['barang','kritis-mart','smart','margin','dashboard','supplier','pembelian','performa','harga','sinkron','update','backup','settings','help'];
 function activateTab(t){
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
   const tb=document.getElementById('tb-'+t);
@@ -1027,6 +1137,7 @@ function showTab(t){
 }
 function renderCurrentTab(){
   if(activeTab==='barang')renderBarang();
+  else if(activeTab==='kritis-mart')renderKritisMart();
   else if(activeTab==='smart'){populateSmartSupplierFilter();renderSmart();}
   else if(activeTab==='margin')renderMarginTab();
   else if(activeTab==='dashboard')renderDashboard();
@@ -1064,9 +1175,42 @@ function updateStats(){
   const profit=items.reduce((s,i)=>s+((i.marginRp||0)*(i.totalStok||0)),0);
   const nilai=items.reduce((s,i)=>{const m=parseFloat(i.modal)||parseFloat(i.hargaBeli)||0;return s+m*(i.totalStok||0)},0);
   const pbt=[...new Set(pbData.map(x=>x.noTrans))].length;
+  // Kritis Mart: stokMart < 4 dan stokGrosir > 0
+  const kmItems=items.filter(i=>i.stokMart<4&&i.stokGrosir>0);
+  const kmCount=kmItems.length;
   T('s-total',t);T('s-perlu',p);T('s-margin',mr);T('s-supplier',sp);T('s-aman',am);T('s-dead',dd);
   T('s-profit',fK(profit));T('s-nilai',fK(nilai));T('s-pb',pbt);
   T('t-sku','📦 '+t+' SKU');T('t-order','⚠ '+p+' Order');T('t-aman','✓ '+am+' Aman');
+  // Update kritis mart banner
+  const banner=document.getElementById('km-alert-banner');
+  const bannerCount=document.getElementById('km-banner-count');
+  const bannerSub=document.getElementById('km-banner-sub');
+  if(banner){
+    if(kmCount>0){
+      banner.classList.remove('hidden');
+      if(bannerCount)bannerCount.textContent=kmCount;
+      if(bannerSub)bannerSub.textContent='Ada '+kmCount+' barang stok Mart < 4 yang masih ada stoknya di Grosir. Segera pindahkan stok!';
+    }else{
+      banner.classList.add('hidden');
+    }
+  }
+  // Update tab badge
+  const kmTabBtn=document.getElementById('tb-kritis-mart');
+  if(kmTabBtn){
+    if(kmCount>0){
+      kmTabBtn.textContent='🏪 Kritis Mart ('+kmCount+')';
+      kmTabBtn.style.color='var(--orange)';
+    }else{
+      kmTabBtn.textContent='🏪 Kritis Mart';
+      kmTabBtn.style.color='';
+    }
+  }
+  // Update sidebar badge
+  const sbKm=document.getElementById('sb-km-count');
+  if(sbKm){
+    if(kmCount>0){sbKm.style.display='inline';sbKm.textContent=kmCount;}
+    else{sbKm.style.display='none';}
+  }
   const lu=localStorage.getItem('ilmi_lu');
   if(lu)T('sb-lu','Update: '+lu);
 }
@@ -1099,6 +1243,7 @@ function applyFilter(){
     if(fst==='dead-stock'&&i.totalStok!==0)return false;
     if(fst==='margin-rendah'&&i.marginPct>=cfg.marginRendah)return false;
     if(fst==='ada-supplier'&&!(i.supplier||'').trim())return false;
+    if(fst==='kritis-mart'&&!((i.stokMart<4)&&(i.stokGrosir>0)))return false;
     return true;
   });
   pgBarang=1;renderBarang();
@@ -1107,7 +1252,7 @@ function setFilter(s){
   activateTab('barang');
   const el=document.getElementById('f-status');
   if(el){
-    const valid=['perlu-order','aman','dead-stock','margin-rendah','ada-supplier'];
+    const valid=['perlu-order','aman','dead-stock','margin-rendah','ada-supplier','kritis-mart'];
     el.value=(s==='all'||!valid.includes(s))?'':s;
   }
   setTimeout(applyFilter,30);
@@ -1173,6 +1318,127 @@ function renderBarang(){
   }).join('')||'<tr><td colspan="13" style="text-align:center;padding:28px;color:var(--text3)">Tidak ada item ditemukan</td></tr>';
   T('barang-info','Menampilkan '+fItems.length+' dari '+items.length+' item');
   renderPg('barang-pg-info','barang-pg-btns',fItems.length,pgBarang,function(p){pgBarang=p;renderBarang()});
+}
+
+// ============================================================
+// KRITIS MART
+// ============================================================
+let kmSortKey='stokMart',kmSortAsc=true,pgKm=1;
+let fKmItems=[];
+
+function getKritisMartItems(){
+  const q=(document.getElementById('q-km')?.value||'').toLowerCase();
+  const fj=document.getElementById('f-km-jenis')?.value||'';
+  const fs=document.getElementById('f-km-suppl')?.value||'';
+  return items.filter(i=>{
+    // Stok Mart < 4 DAN ada stok di Grosir
+    if(!(i.stokMart<4&&i.stokGrosir>0))return false;
+    if(q&&!(i.kode||'').toLowerCase().includes(q)&&!(i.nama||'').toLowerCase().includes(q))return false;
+    if(fj&&i.jenis!==fj)return false;
+    if(fs&&i.supplier!==fs)return false;
+    return true;
+  }).sort((a,b)=>{
+    let va=a[kmSortKey]??'',vb=b[kmSortKey]??'';
+    if(typeof va==='string'){va=va.toLowerCase();vb=(vb+'').toLowerCase();}
+    if(va<vb)return kmSortAsc?-1:1;
+    if(va>vb)return kmSortAsc?1:-1;
+    return 0;
+  });
+}
+
+function doKmSort(key){
+  if(kmSortKey===key)kmSortAsc=!kmSortAsc;else{kmSortKey=key;kmSortAsc=true;}
+  renderKritisMart();
+}
+
+function renderKritisMart(){
+  // Populate dropdowns
+  const jEl=document.getElementById('f-km-jenis');
+  const sEl=document.getElementById('f-km-suppl');
+  if(jEl&&jEl.options.length<=1){
+    const jenis=[...new Set(items.map(i=>i.jenis).filter(Boolean))].sort();
+    jenis.forEach(j=>{const o=document.createElement('option');o.value=j;o.textContent=j;jEl.appendChild(o)});
+  }
+  if(sEl&&sEl.options.length<=1){
+    const supps=[...new Set(items.filter(i=>i.stokMart<4&&i.stokGrosir>0).map(i=>i.supplier).filter(Boolean))].sort();
+    supps.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sEl.appendChild(o)});
+  }
+
+  fKmItems=getKritisMartItems();
+  const allKm=items.filter(i=>i.stokMart<4&&i.stokGrosir>0);
+  const zeroMart=allKm.filter(i=>i.stokMart===0).length;
+  const totalGrosir=allKm.reduce((s,i)=>s+(i.stokGrosir||0),0);
+  const nilaiGrosir=allKm.reduce((s,i)=>{const m=parseFloat(i.modal)||parseFloat(i.hargaBeli)||0;return s+m*(i.stokGrosir||0)},0);
+
+  T('km-count-total',allKm.length);
+  T('km-count-zero',zeroMart);
+  T('km-total-grosir',totalGrosir);
+  T('km-nilai',fK(nilaiGrosir));
+  T('km-table-info','Menampilkan '+fKmItems.length+' dari '+allKm.length+' item kritis mart');
+
+  const tbody=document.getElementById('km-tbody');
+  if(!tbody)return;
+  const start=(pgKm-1)*PG,page=fKmItems.slice(start,start+PG);
+
+  if(fKmItems.length===0){
+    tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--green)">✓ Tidak ada barang kritis — Semua stok Mart aman atau tidak ada stok di Grosir.</td></tr>';
+    renderPg('km-pg-info','km-pg-btns',0,1,function(){});
+    return;
+  }
+
+  tbody.innerHTML=page.map((item,idx)=>{
+    const sm=item.stokMart||0;
+    const sg=item.stokGrosir||0;
+    const ts=item.totalStok||0;
+    const m=item.marginPct||0;
+    const mc=m<cfg.marginRendah?'var(--red)':m<15?'var(--yellow)':'var(--green)';
+    const kode=X(item.kode||'');
+    const nama=X(item.nama||'');
+    // Status mart label
+    let statusLabel,statusClass;
+    if(sm===0){statusLabel='HABIS';statusClass='bg-r';}
+    else if(sm===1){statusLabel='KRITIS (1)';statusClass='bg-r';}
+    else if(sm===2){statusLabel='KRITIS (2)';statusClass='bg-r';}
+    else if(sm===3){statusLabel='HAMPIR HABIS';statusClass='bg-y';}
+    else{statusLabel='RENDAH';statusClass='bg-o';}
+    return `<tr class="km-table-row">
+      <td style="font-size:11px;color:var(--text3)">${start+idx+1}</td>
+      <td class="mono" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${kode}">${kode}</td>
+      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${nama}">${nama}</td>
+      <td><span class="badge bg-b">${X(item.jenis||'—')}</span></td>
+      <td style="font-size:11px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${X(item.supplier||'')}">${X(item.supplier||'—')}</td>
+      <td><span class="km-stok-mart" style="font-size:14px">${sm}</span> <span style="font-size:9px;color:var(--red)">/ &lt;4</span></td>
+      <td><span class="km-stok-grosir">${sg}</span> <span style="font-size:9px;color:var(--green)">✓</span></td>
+      <td><span class="mono" style="font-weight:600">${ts}</span></td>
+      <td class="mono">${fRp(item.modal)}</td>
+      <td class="mono" style="font-weight:600">${fRp(item.hargaJual)}</td>
+      <td><div class="mbar"><div class="btrack"><div class="bfill" style="width:${Math.min(m,100)}%;background:${mc}"></div></div><span class="bpct ${m<cfg.marginRendah?'low':m<15?'med':'hi'}">${m.toFixed(1)}%</span></div></td>
+      <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+      <td><div class="abtns">
+        <button class="btn btn-sm btn-s btn-ico" onclick="openEditItem(${JSON.stringify(item.kode)})" title="Edit / Update Stok">✏</button>
+        <button class="btn btn-sm btn-d btn-ico" onclick="deleteItem(${JSON.stringify(item.kode)})" title="Hapus">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  renderPg('km-pg-info','km-pg-btns',fKmItems.length,pgKm,function(p){pgKm=p;renderKritisMart()});
+}
+
+function exportKritisMartWA(){
+  if(!cfg.wa)return notify('Set nomor WA di ⚙ Pengaturan','err');
+  const kmItems=getKritisMartItems();
+  if(kmItems.length===0)return notify('Tidak ada item kritis mart!','warn');
+  let msg='*'+( cfg.tokoName||'TOKO')+' – ALERT STOK MART KRITIS* 🏪\n';
+  msg+='Tanggal: '+new Date().toLocaleDateString('id-ID')+'\n\n';
+  msg+='⚠️ *'+kmItems.length+' barang stok Mart < 4 (tersedia di Grosir):*\n\n';
+  kmItems.slice(0,30).forEach((i,x)=>{
+    msg+=(x+1)+'. '+(i.nama||'')+'\n';
+    msg+='   Mart: *'+i.stokMart+'* | Grosir: *'+i.stokGrosir+'*\n';
+    if(i.supplier)msg+='   Supplier: '+(i.supplier)+'\n';
+    msg+='\n';
+  });
+  if(kmItems.length>30)msg+='\n...dan '+(kmItems.length-30)+' item lainnya';
+  msg+='\n_Segera pindahkan stok dari Grosir ke Mart!_ 📦';
+  window.open('https://wa.me/'+cfg.wa+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 // ============================================================
@@ -1406,12 +1672,17 @@ function rTopMargin(){
 function rKritis(){
   const el=document.getElementById('kritis-list');if(!el)return;
   const ks=items.filter(i=>i.totalStok<cfg.minStok).sort((a,b)=>a.totalStok-b.totalStok).slice(0,10);
-  el.innerHTML=ks.map((item,i)=>`
-    <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)">
+  el.innerHTML=ks.map((item,i)=>{
+    const isMartKritis=item.stokMart<4&&item.stokGrosir>0;
+    return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)">
       <span style="width:17px;font-size:10px;color:var(--text3);font-family:var(--mono)">${i+1}</span>
-      <div style="flex:1;overflow:hidden"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${X(item.nama||'')}</div><div style="font-size:10px;color:var(--text3)">${X(item.supplier||'Tanpa supplier')}</div></div>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${X(item.nama||'')}${isMartKritis?'<span class="km-chip" style="margin-left:5px">🏪 Mart &lt;4</span>':''}</div>
+        <div style="font-size:10px;color:var(--text3)">${X(item.supplier||'Tanpa supplier')} | Mart: ${item.stokMart} | Grosir: ${item.stokGrosir}</div>
+      </div>
       <span class="sn ${item.totalStok===0?'low':'med'}" style="font-size:13px">${item.totalStok}</span>
-    </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--text3)">Semua stok aman!</div>';
+    </div>`;
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--text3)">Semua stok aman!</div>';
 }
 
 // ============================================================
@@ -2246,6 +2517,8 @@ function initDragDrop(){
 function resetDropdowns(){
   const fj=document.getElementById('f-jenis');if(fj)fj.innerHTML='<option value="">Semua Jenis</option>';
   const fs=document.getElementById('f-suppl');if(fs)fs.innerHTML='<option value="">Semua Supplier</option>';
+  const kj=document.getElementById('f-km-jenis');if(kj)kj.innerHTML='<option value="">Semua Jenis</option>';
+  const ks=document.getElementById('f-km-suppl');if(ks)ks.innerHTML='<option value="">Semua Supplier</option>';
 }
 function resetPbDropdown(){
   const el=document.getElementById('f-pb-sup');if(el)el.innerHTML='<option value="">Semua Supplier</option>';
